@@ -1,5 +1,5 @@
 #####################################################
-# CONFIGURACIÓN INICIAL Y CARGA DE DATOS
+# PARTE 01: CONFIGURACIÓN INICIAL Y CARGA DE DATOS
 #####################################################
 
 ## PROJECT WD
@@ -74,6 +74,7 @@ print(summary(hotel_data))
 cat(yellow("\n--- ANÁLISIS DETALLADO CON SKIMR ---\n"))
 print(skim(hotel_data))
 
+
 # Rutas para guardar los datasets procesados
 CSV_limpio <- file.path(data_dir, "hotel_bookings_limpio.csv")
 CSV_final <- file.path(data_dir, "hotel_bookings_final.csv")
@@ -82,14 +83,18 @@ cat(green("\nRutas para guardar datasets procesados:"), "\n")
 cat("Dataset limpio:", CSV_limpio, "\n")
 cat("Dataset final (si es necesario):", CSV_final, "\n")
 
+
+
+
+
 #####################################################
-# RONDA 2: ANÁLISIS DE DATOS FALTANTES Y ATÍPICOS
+# PARTE 02: ANÁLISIS DE DATOS FALTANTES Y ATÍPICOS
 #####################################################
 
 cat(green("\n=== RONDA 2: ANÁLISIS DE DATOS FALTANTES Y ATÍPICOS ===\n"))
 
 #------------------------------------------
-# 1. ANÁLISIS DE DATOS FALTANTES (NA)
+# 2.1. ANÁLISIS DE DATOS FALTANTES (NA)
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE DATOS FALTANTES ---\n"))
 
@@ -123,7 +128,7 @@ cat("\nDistribución de valores no-NA en 'children':\n")
 print(table(hotel_data$children, useNA = "ifany"))
 
 #------------------------------------------
-# 2. ANÁLISIS DE VALORES ATÍPICOS (OUTLIERS)
+# 2.2. ANÁLISIS DE VALORES ATÍPICOS (OUTLIERS)
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE VALORES ATÍPICOS ---\n"))
 
@@ -192,6 +197,8 @@ for (var in variables_interes) {
   mostrar_extremos(hotel_data, var)
 }
 
+
+
 # Crear histogramas individuales para variables clave
 cat(yellow("\nHistogramas para variables clave:"))
 
@@ -229,8 +236,10 @@ crear_histogramas_mejorados <- function(data, variables) {
 cat("\nCreando histogramas mejorados para variables clave...\n")
 crear_histogramas_mejorados(hotel_data, variables_interes)
 
+
+
 #------------------------------------------
-# 3. VERIFICACIÓN DE CONSISTENCIA LÓGICA
+# 2.3. VERIFICACIÓN DE CONSISTENCIA LÓGICA
 #------------------------------------------
 cat(yellow("\n--- VERIFICACIÓN DE CONSISTENCIA LÓGICA ---\n"))
 
@@ -251,8 +260,9 @@ cat("\nPosibles errores en 'adults':")
 adultos_tabla <- table(hotel_data$adults)
 print(adultos_tabla)
 
+
 #------------------------------------------
-# 4. DEFINIR ESTRATEGIAS PARA DATOS FALTANTES Y ATÍPICOS
+# 2.4. DEFINIR ESTRATEGIAS PARA DATOS FALTANTES Y ATÍPICOS
 #------------------------------------------
 cat(yellow("\n--- ESTRATEGIAS PROPUESTAS ---\n"))
 
@@ -265,8 +275,12 @@ cat("   - adults: Valores superiores a 4 parecen errores, considerar recortar a 
 cat("   - stays_in_weekend_nights y stays_in_week_nights: Establecer límites razonables (ej. máximo 14 días)\n")
 cat("   - adr: Eliminar valores negativos y recortar valores extremadamente altos (ej. > 1000)\n")
 
+
+
+
+
 #####################################################
-# RONDA 3: PREPROCESAMIENTO DE DATOS
+# PARTE 03: PREPROCESAMIENTO DE DATOS
 #####################################################
 
 cat(green("\n=== RONDA 3: PREPROCESAMIENTO DE DATOS ===\n"))
@@ -275,7 +289,7 @@ cat(green("\n=== RONDA 3: PREPROCESAMIENTO DE DATOS ===\n"))
 hotel_data_limpio <- hotel_data
 
 #------------------------------------------
-# 1. TRATAMIENTO DE DATOS FALTANTES
+# 3.1. TRATAMIENTO DE DATOS FALTANTES
 #------------------------------------------
 cat(yellow("\n--- TRATAMIENTO DE DATOS FALTANTES ---\n"))
 
@@ -284,7 +298,7 @@ hotel_data_limpio$children[is.na(hotel_data_limpio$children)] <- 0
 cat("Valores NA en 'children' después de imputación:", sum(is.na(hotel_data_limpio$children)), "\n")
 
 #------------------------------------------
-# 2. TRATAMIENTO DE VALORES ATÍPICOS (OUTLIERS)
+# 3.2. TRATAMIENTO DE VALORES ATÍPICOS (OUTLIERS)
 #------------------------------------------
 cat(yellow("\n--- TRATAMIENTO DE VALORES ATÍPICOS ---\n"))
 
@@ -295,13 +309,13 @@ winsorizar <- function(x, lower_limit, upper_limit) {
   return(x)
 }
 
-# 1. Winsorizar lead_time (tiempo de anticipación)
+# 3.2.1. Winsorizar lead_time (tiempo de anticipación)
 cat("\nTratamiento de 'lead_time':")
 cat("\n  Antes - Max:", max(hotel_data_limpio$lead_time), "Min:", min(hotel_data_limpio$lead_time))
 hotel_data_limpio$lead_time <- winsorizar(hotel_data_limpio$lead_time, 0, 365)
 cat("\n  Después - Max:", max(hotel_data_limpio$lead_time), "Min:", min(hotel_data_limpio$lead_time), "\n")
 
-# 2. Corregir adults (adultos)
+# 3.2.2. Corregir adults (adultos)
 cat("\nTratamiento de 'adults':")
 cat("\n  Antes - Max:", max(hotel_data_limpio$adults), "Min:", min(hotel_data_limpio$adults))
 # Reemplazar valores 0 con 1 (no tiene sentido una reserva sin adultos)
@@ -310,7 +324,7 @@ hotel_data_limpio$adults[hotel_data_limpio$adults == 0] <- 1
 hotel_data_limpio$adults <- winsorizar(hotel_data_limpio$adults, 1, 4)
 cat("\n  Después - Max:", max(hotel_data_limpio$adults), "Min:", min(hotel_data_limpio$adults), "\n")
 
-# 3. Winsorizar stays_in_weekend_nights y stays_in_week_nights
+# 3.2.3. Winsorizar stays_in_weekend_nights y stays_in_week_nights
 cat("\nTratamiento de 'stays_in_weekend_nights':")
 cat("\n  Antes - Max:", max(hotel_data_limpio$stays_in_weekend_nights))
 hotel_data_limpio$stays_in_weekend_nights <- winsorizar(hotel_data_limpio$stays_in_weekend_nights, 0, 14)
@@ -321,7 +335,7 @@ cat("\n  Antes - Max:", max(hotel_data_limpio$stays_in_week_nights))
 hotel_data_limpio$stays_in_week_nights <- winsorizar(hotel_data_limpio$stays_in_week_nights, 0, 14)
 cat("\n  Después - Max:", max(hotel_data_limpio$stays_in_week_nights), "\n")
 
-# 4. Tratar adr (tarifa diaria promedio)
+# 3.2.4. Tratar adr (tarifa diaria promedio)
 cat("\nTratamiento de 'adr':")
 cat("\n  Antes - Max:", max(hotel_data_limpio$adr), "Min:", min(hotel_data_limpio$adr))
 # Reemplazar valores negativos con 0
@@ -330,7 +344,7 @@ hotel_data_limpio$adr[hotel_data_limpio$adr < 0] <- 0
 hotel_data_limpio$adr <- winsorizar(hotel_data_limpio$adr, 0, 1000)
 cat("\n  Después - Max:", max(hotel_data_limpio$adr), "Min:", min(hotel_data_limpio$adr), "\n")
 
-# 5. Winsorizar otros valores numéricos
+# 3.2.5. Winsorizar otros valores numéricos
 cat("\nTratamiento de 'children':")
 hotel_data_limpio$children <- winsorizar(hotel_data_limpio$children, 0, 3)
 cat("\n  Después - Max:", max(hotel_data_limpio$children), "\n")
@@ -340,7 +354,7 @@ hotel_data_limpio$babies <- winsorizar(hotel_data_limpio$babies, 0, 2)
 cat("\n  Después - Max:", max(hotel_data_limpio$babies), "\n")
 
 #------------------------------------------
-# 3. TRATAMIENTO DE INCONSISTENCIAS LÓGICAS
+# 3.3. TRATAMIENTO DE INCONSISTENCIAS LÓGICAS
 #------------------------------------------
 cat(yellow("\n--- TRATAMIENTO DE INCONSISTENCIAS LÓGICAS ---\n"))
 
@@ -471,7 +485,7 @@ cat("\nTotal de archivos guardados:",
 
 
 #------------------------------------------
-# 5. GUARDAR DATASET LIMPIO
+# PARTE 05. GUARDAR DATASET LIMPIO
 #------------------------------------------
 cat(yellow("\n--- GUARDANDO DATASET LIMPIO ---\n"))
 
@@ -479,15 +493,31 @@ cat(yellow("\n--- GUARDANDO DATASET LIMPIO ---\n"))
 write.csv(hotel_data_limpio, CSV_limpio, row.names = FALSE)
 cat("Dataset limpio guardado en:", CSV_limpio, "\n")
 
-# Mostrar dimensiones del dataset limpio
-cat("\nDimensiones del dataset limpio:", dim(hotel_data_limpio)[1], "filas x", 
-    dim(hotel_data_limpio)[2], "columnas\n")
+# Mostrar comparación de dimensiones antes y después de la limpieza
+cat(yellow("\n--- COMPARACIÓN DE DIMENSIONES ---\n"))
+cat("Dataset original:", dim(hotel_data)[1], "filas x", dim(hotel_data)[2], "columnas\n")
+cat("Dataset limpio:", dim(hotel_data_limpio)[1], "filas x", dim(hotel_data_limpio)[2], "columnas\n")
+
+# Verificar si hubo cambios
+filas_diff <- dim(hotel_data_limpio)[1] - dim(hotel_data)[1]
+cols_diff <- dim(hotel_data_limpio)[2] - dim(hotel_data)[2]
+
+if (filas_diff != 0 || cols_diff != 0) {
+  cat(red("¡Alerta! Las dimensiones cambiaron durante la limpieza:\n"))
+  if (filas_diff != 0) cat("  - Diferencia en filas:", filas_diff, "\n")
+  if (cols_diff != 0) cat("  - Diferencia en columnas:", cols_diff, "\n")
+} else {
+  cat(green("✓ Las dimensiones se mantuvieron intactas durante la limpieza.\n"))
+  cat("  No se eliminaron filas ni se agregaron/eliminaron columnas.\n")
+  cat("  Solo se modificaron los valores para corregir outliers y datos faltantes.\n")
+}
 
 
 
-###HERE
+
+
 #####################################################
-# RONDA 4: ANÁLISIS EXPLORATORIO - PREGUNTAS CLAVE (PARTE 1)
+# PARTE 06: ANÁLISIS EDA
 #####################################################
 
 cat(green("\n=== RONDA 4: ANÁLISIS EXPLORATORIO - PREGUNTAS CLAVE (PARTE 1) ===\n"))
@@ -503,7 +533,7 @@ if (!dir.exists(graphics_analysis_dir)) {
 }
 
 #------------------------------------------
-# 1. ¿CUÁNTAS RESERVAS SE REALIZAN POR TIPO DE HOTEL? ¿QUÉ TIPO DE HOTEL PREFIERE LA GENTE?
+# EDA 01: ¿CUÁNTAS RESERVAS SE REALIZAN POR TIPO DE HOTEL? ¿QUÉ TIPO DE HOTEL PREFIERE LA GENTE?
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS POR TIPO DE HOTEL ---\n"))
 
@@ -538,6 +568,7 @@ print(plot_hoteles)
 ggsave(file.path(graphics_analysis_dir, "reservas_por_hotel.jpg"), 
        plot_hoteles, width = 8, height = 6, dpi = 300)
 
+
 # Análisis por estado de cancelación para ver preferencia real
 reservas_completadas <- hotel_data_limpio[hotel_data_limpio$is_canceled == 0, ]
 reservas_completadas_por_hotel <- table(reservas_completadas$hotel)
@@ -571,7 +602,7 @@ ggsave(file.path(graphics_analysis_dir, "reservas_completadas_por_hotel.jpg"),
        plot_completadas, width = 8, height = 6, dpi = 300)
 
 #------------------------------------------
-# 2. ¿ESTÁ AUMENTANDO LA DEMANDA CON EL TIEMPO?
+# EDA 02: ¿ESTÁ AUMENTANDO LA DEMANDA CON EL TIEMPO?
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE TENDENCIA DE DEMANDA ---\n"))
 
@@ -601,58 +632,192 @@ reservas_por_tiempo <- hotel_data_limpio %>%
   ) %>%
   arrange(arrival_yearmonth)
 
-# Mostrar primeras filas del resultado
-cat("\nTendencia de reservas a lo largo del tiempo (primeras filas):\n")
-print(head(reservas_por_tiempo, 10))
 
-# Visualizar tendencia temporal
-plot_tendencia <- ggplot(reservas_por_tiempo, aes(x = arrival_yearmonth, y = Total_Reservas, group = 1)) +
-  geom_line(color = "steelblue", size = 1) +
-  geom_point(color = "steelblue", size = 2) +
+
+# Mostrar tendencia de reservas de forma más clara
+cat(yellow("\n--- TENDENCIA DE RESERVAS A LO LARGO DEL TIEMPO ---\n"))
+
+# Calcular tasa de cancelación para cada período
+reservas_por_tiempo <- reservas_por_tiempo %>%
+  mutate(
+    Tasa_Cancelacion = round((Total_Reservas - Reservas_Completadas) / Total_Reservas * 100, 1),
+    Periodo = paste(substr(arrival_yearmonth, 1, 4), substr(arrival_yearmonth, 6, 7), sep = "-")
+  ) %>%
+  select(Periodo, Total_Reservas, Reservas_Completadas, Tasa_Cancelacion)
+
+# Mostrar tabla bonita
+cat("\nDatos de reservas por período (primeros 10 meses):\n\n")
+print(knitr::kable(head(reservas_por_tiempo, 10),
+                   col.names = c("Período", "Total Reservas", "Reservas Completadas", "Tasa Cancelación (%)"),
+                   align = c("l", "r", "r", "r"),
+                   format = "simple"))
+
+# Mostrar estadísticas de resumen
+cat("\nEstadísticas de resumen:\n")
+cat("- Período con mayor cantidad de reservas:", 
+    reservas_por_tiempo$Periodo[which.max(reservas_por_tiempo$Total_Reservas)], 
+    "con", max(reservas_por_tiempo$Total_Reservas), "reservas\n")
+cat("- Período con menor cantidad de reservas:", 
+    reservas_por_tiempo$Periodo[which.min(reservas_por_tiempo$Total_Reservas)], 
+    "con", min(reservas_por_tiempo$Total_Reservas), "reservas\n")
+cat("- Tasa de cancelación promedio:", 
+    round(mean(reservas_por_tiempo$Tasa_Cancelacion), 1), "%\n")
+
+# Mostrar tendencia principal
+primero <- head(reservas_por_tiempo, 1)
+ultimo <- tail(reservas_por_tiempo, 1)
+cambio_porc <- round((ultimo$Total_Reservas - primero$Total_Reservas) / primero$Total_Reservas * 100, 1)
+
+cat("\nTendencia general:", ifelse(cambio_porc > 0, "AUMENTO", "DISMINUCIÓN"), 
+    "del", abs(cambio_porc), "% en reservas totales",
+    "desde", primero$Periodo, "hasta", ultimo$Periodo, "\n")
+
+
+
+# Primero, preparo los datos calculando porcentajes
+reservas_por_tiempo <- hotel_data_limpio %>%
+  group_by(arrival_yearmonth) %>%
+  summarise(
+    Total_Reservas = n(),
+    Reservas_Completadas = sum(is_canceled == 0),
+    Reservas_Canceladas = sum(is_canceled == 1)
+  ) %>%
+  mutate(
+    Porcentaje_Completadas = round(Reservas_Completadas / Total_Reservas * 100, 1),
+    Porcentaje_Canceladas = round(Reservas_Canceladas / Total_Reservas * 100, 1)
+  ) %>%
+  arrange(arrival_yearmonth)
+
+# Reorganizo los datos para facilitar la visualización apilada
+datos_para_grafico <- reservas_por_tiempo %>%
+  pivot_longer(
+    cols = c(Reservas_Completadas, Reservas_Canceladas),
+    names_to = "Estado",
+    values_to = "Cantidad"
+  ) %>%
+  mutate(
+    Porcentaje = ifelse(
+      Estado == "Reservas_Completadas", 
+      Porcentaje_Completadas, 
+      Porcentaje_Canceladas
+    )
+  )
+
+# Creo un gráfico que muestra valores absolutos y porcentajes
+plot_tendencia_porcentajes <- ggplot(datos_para_grafico, 
+                                     aes(x = arrival_yearmonth, y = Cantidad, 
+                                         fill = Estado, group = Estado)) +
+  geom_bar(stat = "identity", position = "stack") +
+  geom_text(aes(label = paste0(Porcentaje, "%")), 
+            position = position_stack(vjust = 0.5),
+            color = "white", size = 3) +
   labs(title = "Tendencia de reservas a lo largo del tiempo",
+       subtitle = "Mostrando porcentajes de reservas completadas y canceladas",
        x = "Año-Mes",
-       y = "Cantidad de reservas") +
+       y = "Cantidad de reservas",
+       fill = "Estado") +
+  scale_fill_manual(values = c("Reservas_Completadas" = "#2ecc71", 
+                               "Reservas_Canceladas" = "#e74c3c"),
+                    labels = c("Completadas", "Canceladas")) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        legend.position = "bottom")
+
+print(plot_tendencia_porcentajes)
+
+# Guardar gráfica
+ggsave(file.path(graphics_analysis_dir, "tendencia_reservas_porcentajes.jpg"), 
+       plot_tendencia_porcentajes, width = 12, height = 8, dpi = 300)
+
+# También podemos crear un gráfico de líneas que muestre el porcentaje de cancelación a lo largo del tiempo
+plot_porcentaje_cancelacion <- ggplot(reservas_por_tiempo, 
+                                      aes(x = arrival_yearmonth, y = Porcentaje_Canceladas, group = 1)) +
+  geom_line(color = "#e74c3c", size = 1.2) +
+  geom_point(color = "#e74c3c", size = 2) +
+  geom_text(aes(label = paste0(Porcentaje_Canceladas, "%")), 
+            vjust = -0.8, size = 3) +
+  labs(title = "Tendencia del porcentaje de cancelaciones",
+       subtitle = "Porcentaje de reservas canceladas por mes",
+       x = "Año-Mes",
+       y = "Porcentaje de cancelación (%)") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
-print(plot_tendencia)
+print(plot_porcentaje_cancelacion)
 
-# Guardar gráfica
-ggsave(file.path(graphics_analysis_dir, "tendencia_reservas.jpg"), 
-       plot_tendencia, width = 10, height = 6, dpi = 300)
+# Guardar segunda gráfica
+ggsave(file.path(graphics_analysis_dir, "tendencia_porcentaje_cancelacion.jpg"), 
+       plot_porcentaje_cancelacion, width = 12, height = 8, dpi = 300)
 
-# Análisis por año
+
+
+
+
+# Análisis por año con porcentajes
 reservas_por_anio <- hotel_data_limpio %>%
   group_by(arrival_date_year) %>%
   summarise(
     Total_Reservas = n(),
-    Reservas_Completadas = sum(is_canceled == 0)
+    Reservas_Completadas = sum(is_canceled == 0),
+    Reservas_Canceladas = sum(is_canceled == 1)
+  ) %>%
+  mutate(
+    Porcentaje_Completadas = round(Reservas_Completadas / Total_Reservas * 100, 1),
+    Porcentaje_Canceladas = round(Reservas_Canceladas / Total_Reservas * 100, 1)
   )
 
-cat("\nReservas por año:\n")
+cat("\nReservas por año con porcentajes:\n")
 print(reservas_por_anio)
 
-# Visualizar comparación anual
-plot_anios <- ggplot(reservas_por_anio, aes(x = as.factor(arrival_date_year))) +
-  geom_bar(aes(y = Total_Reservas, fill = "Total Reservas"), stat = "identity", position = "dodge") +
-  geom_bar(aes(y = Reservas_Completadas, fill = "Reservas Completadas"), stat = "identity", 
-           position = position_dodge(width = 0.9), alpha = 0.7) +
-  geom_text(aes(y = Total_Reservas, label = Total_Reservas), vjust = -0.5, position = position_dodge(width = 0.9)) +
-  geom_text(aes(y = Reservas_Completadas, label = Reservas_Completadas), vjust = -0.5, position = position_dodge(width = 0.9)) +
-  labs(title = "Comparación de reservas por año",
-       x = "Año",
+# Preparar datos para el gráfico horizontal
+datos_anio_apilado <- reservas_por_anio %>%
+  pivot_longer(
+    cols = c(Reservas_Completadas, Reservas_Canceladas),
+    names_to = "Estado",
+    values_to = "Cantidad"
+  ) %>%
+  mutate(
+    Porcentaje = ifelse(
+      Estado == "Reservas_Completadas", 
+      Porcentaje_Completadas, 
+      Porcentaje_Canceladas
+    )
+  )
+
+# Crear el gráfico horizontal de barras apiladas
+plot_anios_horizontal <- ggplot(datos_anio_apilado, 
+                                aes(x = as.factor(arrival_date_year), 
+                                    y = Cantidad, 
+                                    fill = Estado, 
+                                    group = Estado)) +
+  geom_bar(stat = "identity", position = "stack") +
+  geom_text(aes(label = paste0(Cantidad, " (", Porcentaje, "%)")), 
+            position = position_stack(vjust = 0.5),
+            color = "white", size = 4) +
+  coord_flip() + # Hace el gráfico horizontal
+  labs(title = "Reservas por año",
+       subtitle = "Mostrando cantidades y porcentajes de reservas",
        y = "Cantidad de reservas",
-       fill = "Tipo") +
-  theme_minimal()
+       x = "Año",
+       fill = "Estado") +
+  scale_fill_manual(values = c("Reservas_Completadas" = "#2ecc71", 
+                               "Reservas_Canceladas" = "#e74c3c"),
+                    labels = c("Completadas", "Canceladas")) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 
-print(plot_anios)
+print(plot_anios_horizontal)
 
-# Guardar gráfica
-ggsave(file.path(graphics_analysis_dir, "reservas_por_anio.jpg"), 
-       plot_anios, width = 8, height = 6, dpi = 300)
+# Guardar gráfica horizontal
+ggsave(file.path(graphics_analysis_dir, "reservas_por_anio_horizontal.jpg"), 
+       plot_anios_horizontal, width = 8, height = 6, dpi = 300)
+
+
+
+
 
 #------------------------------------------
-# 3. ¿CUÁLES SON LAS TEMPORADAS DE RESERVAS (ALTA, MEDIA, BAJA)?
+# EDA 03: ¿CUÁLES SON LAS TEMPORADAS DE RESERVAS (ALTA, MEDIA, BAJA)?
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE TEMPORADAS ---\n"))
 
@@ -699,8 +864,12 @@ print(plot_meses)
 ggsave(file.path(graphics_analysis_dir, "reservas_por_mes.jpg"), 
        plot_meses, width = 10, height = 6, dpi = 300)
 
+
+
+
+
 #------------------------------------------
-# 4. ¿CUÁNDO ES MENOR LA DEMANDA DE RESERVAS?
+# EDA 04:  ¿CUÁNDO ES MENOR LA DEMANDA DE RESERVAS?
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE PERÍODOS DE BAJA DEMANDA ---\n"))
 
@@ -711,10 +880,6 @@ meses_baja_demanda <- reservas_por_mes %>%
 
 cat("\nMeses con menor demanda de reservas:\n")
 print(meses_baja_demanda)
-
-# Análisis por día de la semana para identificar patrones adicionales
-# Crear columna de día de la semana basada en arrival_date_week_number y arrival_date_day_of_month
-# Nota: Esta es una aproximación ya que no tenemos la fecha exacta en formato fecha
 
 # Análisis por combinación de mes y día del mes
 reservas_por_dia_mes <- hotel_data_limpio %>%
@@ -733,13 +898,19 @@ dias_menor_demanda <- reservas_por_dia_mes %>%
 dias_menor_demanda$Fecha <- paste(dias_menor_demanda$arrival_date_month, 
                                   dias_menor_demanda$arrival_date_day_of_month)
 
-plot_menor_demanda <- ggplot(dias_menor_demanda, aes(x = reorder(Fecha, Total_Reservas), y = Total_Reservas, fill = Total_Reservas)) +
+# Gráfico con el menor valor arriba
+plot_menor_demanda <- ggplot(dias_menor_demanda, 
+                             aes(x = reorder(Fecha, Total_Reservas), 
+                                 y = Total_Reservas, 
+                                 fill = Total_Reservas)) +
   geom_bar(stat = "identity") +
   geom_text(aes(label = Total_Reservas), hjust = -0.2) +
   labs(title = "10 días con menor demanda de reservas",
+       subtitle = "Ordenados de menor a mayor",
        x = "Fecha (Mes-Día)",
        y = "Cantidad de reservas") +
   coord_flip() +
+  scale_fill_gradient(low = "#e74c3c", high = "#f39c12") +
   theme_minimal() +
   theme(legend.position = "none")
 
@@ -749,55 +920,102 @@ print(plot_menor_demanda)
 ggsave(file.path(graphics_analysis_dir, "dias_menor_demanda.jpg"), 
        plot_menor_demanda, width = 8, height = 6, dpi = 300)
 
-#------------------------------------------
-# RESUMEN DE HALLAZGOS DE RONDA 4
-#------------------------------------------
-cat(yellow("\n--- RESUMEN DE HALLAZGOS RONDA 4 ---\n"))
 
-cat("\n1. Análisis por tipo de hotel:\n")
-cat("   - El hotel tipo '", reservas_por_hotel_df$Tipo_Hotel[which.max(reservas_por_hotel_df$Cantidad)], 
-    "' tiene mayor cantidad de reservas (", 
-    reservas_por_hotel_df$Cantidad[which.max(reservas_por_hotel_df$Cantidad)], 
-    " reservas, ", reservas_por_hotel_df$Porcentaje[which.max(reservas_por_hotel_df$Cantidad)], "%).\n", sep="")
-cat("   - Para reservas completadas, el hotel tipo '", 
-    reservas_completadas_df$Tipo_Hotel[which.max(reservas_completadas_df$Reservas_Completadas)], 
-    "' sigue siendo el preferido.\n")
 
-cat("\n2. Tendencia de demanda:\n")
-ultimo_anio <- max(reservas_por_anio$arrival_date_year)
-penultimo_anio <- ultimo_anio - 1
-cambio_porcentual <- round(
-  (reservas_por_anio$Total_Reservas[reservas_por_anio$arrival_date_year == ultimo_anio] - 
-     reservas_por_anio$Total_Reservas[reservas_por_anio$arrival_date_year == penultimo_anio]) / 
-    reservas_por_anio$Total_Reservas[reservas_por_anio$arrival_date_year == penultimo_anio] * 100, 2
+
+
+#------------------------------------------
+# EDA 05: ¿CUÁNDO ES MAYOR LA DEMANDA DE RESERVAS?
+#------------------------------------------
+cat(yellow("\n--- ANÁLISIS DE PERÍODOS DE ALTA DEMANDA ---\n"))
+
+# Identificar meses de alta demanda
+meses_alta_demanda <- reservas_por_mes %>%
+  filter(Temporada == "Alta") %>%
+  arrange(desc(Total_Reservas))
+
+cat("\nMeses con mayor demanda de reservas:\n")
+print(meses_alta_demanda)
+
+# Análisis por combinación de mes y día del mes para alta demanda
+cat("\nCombinaciones de mes y día con mayor demanda (10 primeros):\n")
+dias_mayor_demanda <- reservas_por_dia_mes %>%
+  arrange(desc(Total_Reservas)) %>%
+  head(10)
+
+print(dias_mayor_demanda)
+
+# Crear etiqueta de fecha
+dias_mayor_demanda$Fecha <- paste(dias_mayor_demanda$arrival_date_month, 
+                                  dias_mayor_demanda$arrival_date_day_of_month)
+
+# Visualizar los 10 días con mayor demanda
+plot_mayor_demanda <- ggplot(dias_mayor_demanda, 
+                             aes(x = reorder(Fecha, -Total_Reservas), 
+                                 y = Total_Reservas, 
+                                 fill = Total_Reservas)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = Total_Reservas), hjust = -0.2) +
+  labs(title = "10 días con mayor demanda de reservas",
+       subtitle = "Ordenados de mayor a menor",
+       x = "Fecha (Mes-Día)",
+       y = "Cantidad de reservas") +
+  coord_flip() +
+  scale_fill_gradient(low = "#f39c12", high = "#2ecc71") +  # Invertimos colores: amarillo a verde
+  theme_minimal() +
+  theme(legend.position = "none")
+
+print(plot_mayor_demanda)
+
+# Guardar gráfica
+ggsave(file.path(graphics_analysis_dir, "dias_mayor_demanda.jpg"), 
+       plot_mayor_demanda, width = 8, height = 6, dpi = 300)
+
+# Comparativa de meses extremos (mayor y menor demanda)
+cat(yellow("\n--- COMPARATIVA DE MESES DE MAYOR Y MENOR DEMANDA ---\n"))
+
+# Obtener el mes de mayor y menor demanda
+mes_max_demanda <- reservas_por_mes %>% 
+  arrange(desc(Total_Reservas)) %>% 
+  slice(1)
+
+mes_min_demanda <- reservas_por_mes %>% 
+  arrange(Total_Reservas) %>% 
+  slice(1)
+
+cat("\nMes con MAYOR demanda:", mes_max_demanda$arrival_date_month, 
+    "con", mes_max_demanda$Total_Reservas, "reservas\n")
+cat("Mes con MENOR demanda:", mes_min_demanda$arrival_date_month, 
+    "con", mes_min_demanda$Total_Reservas, "reservas\n")
+
+# Crear dataframe para comparativa
+meses_extremos <- rbind(
+  mes_max_demanda %>% mutate(Tipo = "Mayor demanda"),
+  mes_min_demanda %>% mutate(Tipo = "Menor demanda")
 )
-cat("   - Comparando ", ultimo_anio, " con ", penultimo_anio, ", hubo un cambio del ", 
-    cambio_porcentual, "% en el número total de reservas.\n", sep="")
-cat("   - La tendencia general indica que ", 
-    ifelse(cambio_porcentual > 0, "está aumentando", "está disminuyendo"), 
-    " la demanda con el tiempo.\n")
 
-cat("\n3. Temporadas de reserva:\n")
-cat("   - Temporada ALTA: ", paste(reservas_por_mes$arrival_date_month[reservas_por_mes$Temporada == "Alta"], collapse=", "), "\n")
-cat("   - Temporada MEDIA: ", paste(reservas_por_mes$arrival_date_month[reservas_por_mes$Temporada == "Media"], collapse=", "), "\n")
-cat("   - Temporada BAJA: ", paste(reservas_por_mes$arrival_date_month[reservas_por_mes$Temporada == "Baja"], collapse=", "), "\n")
+# Visualizar comparativa
+plot_meses_extremos <- ggplot(meses_extremos, 
+                              aes(x = arrival_date_month, y = Total_Reservas, fill = Tipo)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = Total_Reservas), 
+            position = position_dodge(width = 0.9), vjust = -0.5) +
+  labs(title = "Comparativa entre meses de mayor y menor demanda",
+       x = "Mes",
+       y = "Cantidad de reservas",
+       fill = "") +
+  scale_fill_manual(values = c("Mayor demanda" = "#2ecc71", "Menor demanda" = "#e74c3c")) +
+  theme_minimal()
 
-cat("\n4. Períodos de menor demanda:\n")
-cat("   - El mes con menor demanda es: ", meses_baja_demanda$arrival_date_month[1], 
-    " con ", meses_baja_demanda$Total_Reservas[1], " reservas.\n")
-cat("   - La combinación mes-día con menor demanda es: ", 
-    dias_menor_demanda$arrival_date_month[1], "-", dias_menor_demanda$arrival_date_day_of_month[1], 
-    " con ", dias_menor_demanda$Total_Reservas[1], " reservas.\n")
+print(plot_meses_extremos)
+
+# Guardar gráfica
+ggsave(file.path(graphics_analysis_dir, "comparativa_meses_extremos.jpg"), 
+       plot_meses_extremos, width = 8, height = 6, dpi = 300)
 
 
 
 
-###HERE
-#####################################################
-# RONDA 5: ANÁLISIS EXPLORATORIO - PREGUNTAS CLAVE (PARTE 2)
-#####################################################
-
-cat(green("\n=== RONDA 5: ANÁLISIS EXPLORATORIO - PREGUNTAS CLAVE (PARTE 2) ===\n"))
 
 # Verificar si necesitamos recargar el dataset limpio
 if (!exists("hotel_data_limpio") || !is.data.frame(hotel_data_limpio)) {
@@ -812,8 +1030,11 @@ if (!dir.exists(graphics_analysis_dir)) {
   cat("Creado directorio para gráficas de análisis:", graphics_analysis_dir, "\n")
 }
 
+
+
+
 #------------------------------------------
-# 1. ¿CUÁNTAS RESERVAS INCLUYEN NIÑOS Y/O BEBÉS?
+# EDA 06: ¿CUÁNTAS RESERVAS INCLUYEN NIÑOS Y/O BEBÉS?
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE RESERVAS CON NIÑOS Y/O BEBÉS ---\n"))
 
@@ -900,7 +1121,7 @@ ggsave(file.path(graphics_analysis_dir, "menores_por_hotel.jpg"),
        plot_menores_hotel, width = 8, height = 6, dpi = 300)
 
 #------------------------------------------
-# 2. ¿ES IMPORTANTE CONTAR CON ESPACIOS DE ESTACIONAMIENTO?
+# EDA 07. ¿ES IMPORTANTE CONTAR CON ESPACIOS DE ESTACIONAMIENTO?
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE ESPACIOS DE ESTACIONAMIENTO ---\n"))
 
@@ -1007,7 +1228,7 @@ ggsave(file.path(graphics_analysis_dir, "estacionamiento_por_cliente.jpg"),
        plot_estacionamiento_cliente, width = 10, height = 6, dpi = 300)
 
 #------------------------------------------
-# 3. ¿EN QUÉ MESES DEL AÑO SE PRODUCEN MÁS CANCELACIONES DE RESERVAS?
+# EDA 08. ¿EN QUÉ MESES DEL AÑO SE PRODUCEN MÁS CANCELACIONES DE RESERVAS?
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE CANCELACIONES POR MES ---\n"))
 
@@ -1098,7 +1319,7 @@ ggsave(file.path(graphics_analysis_dir, "cancelacion_hotel_mes.jpg"),
        plot_cancelacion_hotel, width = 12, height = 6, dpi = 300)
 
 #------------------------------------------
-# 4. ANÁLISIS ADICIONAL: RELACIÓN ENTRE VARIABLES CLAVE
+# EDA 09: ANÁLISIS ADICIONAL - RELACIÓN ENTRE VARIABLES CLAVE
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS ADICIONAL: RELACIONES ENTRE VARIABLES ---\n"))
 
@@ -1161,18 +1382,89 @@ print(plot_duracion)
 ggsave(file.path(graphics_analysis_dir, "duracion_estancia.jpg"), 
        plot_duracion, width = 8, height = 6, dpi = 300)
 
-#------------------------------------------
-# RESUMEN DE HALLAZGOS DE RONDA 5
-#------------------------------------------
-cat(yellow("\n--- RESUMEN DE HALLAZGOS RONDA 5 ---\n"))
 
-cat("\n1. Análisis de reservas con niños y/o bebés:\n")
+
+#------------------------------------------
+# PARTE 07.5 RESUMEN DE EDA
+#------------------------------------------
+
+cat("\n1. Análisis por tipo de hotel:\n")
+cat("   - El hotel tipo '", reservas_por_hotel_df$Tipo_Hotel[which.max(reservas_por_hotel_df$Cantidad)], 
+    "' tiene mayor cantidad de reservas (", 
+    reservas_por_hotel_df$Cantidad[which.max(reservas_por_hotel_df$Cantidad)], 
+    " reservas, ", reservas_por_hotel_df$Porcentaje[which.max(reservas_por_hotel_df$Cantidad)], "%).\n", sep="")
+cat("   - Para reservas completadas, el hotel tipo '", 
+    reservas_completadas_df$Tipo_Hotel[which.max(reservas_completadas_df$Reservas_Completadas)], 
+    "' sigue siendo el preferido.\n")
+
+cat("\n2. Tendencia de demanda:\n")
+ultimo_anio <- max(reservas_por_anio$arrival_date_year)
+penultimo_anio <- ultimo_anio - 1
+cambio_porcentual <- round(
+  (reservas_por_anio$Total_Reservas[reservas_por_anio$arrival_date_year == ultimo_anio] - 
+     reservas_por_anio$Total_Reservas[reservas_por_anio$arrival_date_year == penultimo_anio]) / 
+    reservas_por_anio$Total_Reservas[reservas_por_anio$arrival_date_year == penultimo_anio] * 100, 2
+)
+cat("   - Comparando ", ultimo_anio, " con ", penultimo_anio, ", hubo un cambio del ", 
+    cambio_porcentual, "% en el número total de reservas.\n", sep="")
+cat("   - La tendencia general indica que ", 
+    ifelse(cambio_porcentual > 0, "está aumentando", "está disminuyendo"), 
+    " la demanda con el tiempo.\n")
+cat("   - Tasa de cancelación en ", ultimo_anio, ": ", 
+    reservas_por_anio$Porcentaje_Canceladas[reservas_por_anio$arrival_date_year == ultimo_anio], 
+    "%, frente a ", 
+    reservas_por_anio$Porcentaje_Canceladas[reservas_por_anio$arrival_date_year == penultimo_anio], 
+    "% en ", penultimo_anio, ".\n", sep="")
+
+cat("\n3. Temporadas de reserva:\n")
+cat("   - Temporada ALTA: ", paste(unique(reservas_por_mes$arrival_date_month[reservas_por_mes$Temporada == "Alta"]), collapse=", "), "\n")
+cat("   - Temporada MEDIA: ", paste(unique(reservas_por_mes$arrival_date_month[reservas_por_mes$Temporada == "Media"]), collapse=", "), "\n")
+cat("   - Temporada BAJA: ", paste(unique(reservas_por_mes$arrival_date_month[reservas_por_mes$Temporada == "Baja"]), collapse=", "), "\n")
+
+cat("\n4. Períodos de menor demanda:\n")
+cat("   - El mes con MENOR demanda es: ", meses_baja_demanda$arrival_date_month[1], 
+    " con ", meses_baja_demanda$Total_Reservas[1], " reservas.\n")
+cat("   - La combinación mes-día con MENOR demanda es: ", 
+    dias_menor_demanda$arrival_date_month[1], "-", dias_menor_demanda$arrival_date_day_of_month[1], 
+    " con ", dias_menor_demanda$Total_Reservas[1], " reservas.\n")
+
+cat("\n5. Períodos de mayor demanda:\n")
+cat("   - El mes con MAYOR demanda es: ", meses_alta_demanda$arrival_date_month[1], 
+    " con ", meses_alta_demanda$Total_Reservas[1], " reservas.\n")
+cat("   - La combinación mes-día con MAYOR demanda es: ", 
+    dias_mayor_demanda$arrival_date_month[1], "-", dias_mayor_demanda$arrival_date_day_of_month[1], 
+    " con ", dias_mayor_demanda$Total_Reservas[1], " reservas.\n")
+
+cat("\n6. Comparativa extremos de demanda:\n")
+diferencia_extremos <- mes_max_demanda$Total_Reservas - mes_min_demanda$Total_Reservas
+porcentaje_diferencia <- round((diferencia_extremos / mes_min_demanda$Total_Reservas) * 100, 2)
+
+cat("   - Diferencia entre el mes de mayor y menor demanda: ", diferencia_extremos, 
+    " reservas (", porcentaje_diferencia, "% más en temporada alta).\n", sep="")
+cat("   - El mes de máxima demanda (", mes_max_demanda$arrival_date_month, 
+    ") tiene ", round(mes_max_demanda$Total_Reservas/30), " reservas diarias en promedio.\n", sep="")
+cat("   - El mes de mínima demanda (", mes_min_demanda$arrival_date_month, 
+    ") tiene ", round(mes_min_demanda$Total_Reservas/30), " reservas diarias en promedio.\n", sep="")
+
+# Análisis de días de la semana si están disponibles
+if ("arrival_date_day_of_week" %in% colnames(hotel_data_limpio) || 
+    "arrival_date_day_of_week" %in% names(hotel_data_limpio)) {
+  
+  # Si tenemos información del día de la semana
+  cat("\n7. Patrones por día de la semana:\n")
+  cat("   - El análisis por día de la semana muestra patrones adicionales en la demanda.\n")
+  cat("   - [Aquí iría el análisis de días de la semana si estuviera disponible]\n")
+}
+
+
+
+cat("\n8. Análisis de reservas con niños y/o bebés:\n")
 cat("   - Un", porcentaje_menores, "% de las reservas incluyen niños y/o bebés (", reservas_con_menores, "reservas).\n")
 cat("   - El hotel tipo '", reservas_menores_hotel$hotel[which.max(reservas_menores_hotel$Porcentaje_Menores)], 
     "' tiene mayor porcentaje de reservas con menores (", 
     reservas_menores_hotel$Porcentaje_Menores[which.max(reservas_menores_hotel$Porcentaje_Menores)], "%).\n")
 
-cat("\n2. Importancia de espacios de estacionamiento:\n")
+cat("\n9. Importancia de espacios de estacionamiento:\n")
 cat("   - Solamente el", porcentaje_estacionamiento, 
     "% de las reservas requieren espacios de estacionamiento.\n")
 cat("   - Por tipo de hotel, '", 
@@ -1184,7 +1476,7 @@ cat("   - El tipo de cliente con mayor demanda de estacionamiento es '",
     estacionamiento_por_cliente$customer_type[1], "' con ", 
     estacionamiento_por_cliente$Porcentaje_Estacionamiento[1], "% de reservas.\n")
 
-cat("\n3. Meses con más cancelaciones:\n")
+cat("\n10. Meses con más cancelaciones:\n")
 cat("   - El mes con mayor tasa de cancelación es '", 
     cancelaciones_por_mes$arrival_date_month[which.max(cancelaciones_por_mes$Tasa_Cancelacion)], 
     "' (", cancelaciones_por_mes$Tasa_Cancelacion[which.max(cancelaciones_por_mes$Tasa_Cancelacion)], "%).\n")
@@ -1206,9 +1498,10 @@ cat("   - La duración promedio de estancia en el hotel tipo '",
 
 
 
-###HERE
+
+
 #####################################################
-# RONDA 6: VISUALIZACIONES Y CONCLUSIONES FINALES
+# PARTE 08: VISUALIZACIONES Y CONCLUSIONES FINALES
 #####################################################
 
 cat(green("\n=== RONDA 6: VISUALIZACIONES Y CONCLUSIONES FINALES ===\n"))
@@ -1231,7 +1524,7 @@ colores_principales <- c("#3498db", "#2ecc71", "#e74c3c", "#f39c12", "#9b59b6")
 colores_hotel <- c("City Hotel" = "#3498db", "Resort Hotel" = "#2ecc71")
 
 #------------------------------------------
-# 1. VISUALIZACIONES CONSOLIDADAS PARA CADA PREGUNTA CLAVE
+# PARTE 08.5: VISUALIZACIONES CONSOLIDADAS PARA CADA PREGUNTA CLAVE
 #------------------------------------------
 cat(yellow("\n--- VISUALIZACIONES CONSOLIDADAS ---\n"))
 
@@ -1472,12 +1765,14 @@ print(combined_plot)
 ggsave(file.path(graphics_final_dir, "5_estacionamiento_cancelaciones.jpg"), 
        combined_plot, width = 10, height = 10, dpi = 300)
 
+
+
 #------------------------------------------
-# 2. TABLAS RESUMEN PARA ASPECTOS CLAVE
+# PARTE 09: TABLAS RESUMEN PARA ASPECTOS CLAVE
 #------------------------------------------
 cat(yellow("\n--- TABLAS RESUMEN ---\n"))
 
-# 2.1 Top 5 meses con mayor demanda
+# 9.1 Top 5 meses con mayor demanda
 top_meses_demanda <- hotel_data_limpio %>%
   group_by(arrival_date_month) %>%
   summarise(Total_Reservas = n()) %>%
@@ -1487,7 +1782,7 @@ top_meses_demanda <- hotel_data_limpio %>%
 cat("\nTop 5 meses con mayor demanda:\n")
 print(top_meses_demanda)
 
-# 2.2 Top 5 meses con mayor tasa de cancelación
+# 9.2 Top 5 meses con mayor tasa de cancelación
 top_meses_cancelacion <- hotel_data_limpio %>%
   group_by(arrival_date_month) %>%
   summarise(
@@ -1501,7 +1796,7 @@ top_meses_cancelacion <- hotel_data_limpio %>%
 cat("\nTop 5 meses con mayor tasa de cancelación:\n")
 print(top_meses_cancelacion)
 
-# 2.3 Comparación entre tipos de hotel (aspectos clave)
+# 9.3 Comparación entre tipos de hotel (aspectos clave)
 comparacion_hoteles <- hotel_data_limpio %>%
   group_by(hotel) %>%
   summarise(
@@ -1525,7 +1820,7 @@ comparacion_tabla <- tableGrob(comparacion_hoteles, rows = NULL, theme = ttheme_
 ggsave(file.path(graphics_final_dir, "6_comparacion_hoteles.jpg"), 
        comparacion_tabla, width = 12, height = 4, dpi = 300)
 
-# 2.4 Relación entre lead_time y cancelación
+# 9.4 Relación entre lead_time y cancelación
 relacion_lead_cancelacion <- hotel_data_limpio %>%
   mutate(lead_time_cat = cut(lead_time, 
                              breaks = c(-1, 7, 30, 90, 180, Inf),
@@ -1560,7 +1855,7 @@ ggsave(file.path(graphics_final_dir, "7_lead_time_cancelacion.jpg"),
        plot_lead_cancelacion, width = 10, height = 6, dpi = 300)
 
 #------------------------------------------
-# 3. CONCLUSIONES GENERALES
+# PARTE 10. CONCLUSIONES GENERALES
 #------------------------------------------
 cat(yellow("\n--- CONCLUSIONES GENERALES ---\n"))
 
@@ -1627,7 +1922,7 @@ cat("   - Existe una clara correlación entre el tiempo de anticipación (lead_t
     relacion_lead_cancelacion$Tasa_Cancelacion[relacion_lead_cancelacion$lead_time_cat == "0-7 días"], "%.\n")
 
 #------------------------------------------
-# 4. RECOMENDACIONES ESTRATÉGICAS
+# PARTE 11: RECOMENDACIONES ESTRATÉGICAS
 #------------------------------------------
 cat(yellow("\n--- RECOMENDACIONES ESTRATÉGICAS ---\n"))
 
@@ -1667,7 +1962,7 @@ cat("   - Para el Resort Hotel, continuar desarrollando instalaciones atractivas
 cat("   - Para el City Hotel, enfocarse en comodidades y servicios que atraigan a viajeros de negocios y turistas urbanos sin niños.\n")
 
 #------------------------------------------
-# 5. GUARDAR DATAFRAME FINAL CON VARIABLES ADICIONALES CALCULADAS
+# PARTE ADICIONAL 1: GUARDAR DATAFRAME FINAL CON VARIABLES ADICIONALES CALCULADAS
 #------------------------------------------
 cat(yellow("\n--- GUARDANDO DATASET FINAL ---\n"))
 
@@ -1709,7 +2004,7 @@ str(hotel_data_final[, c("hotel", "is_canceled", "lead_time",
                          "Temporada", "total_nights", "tipo_familia")])
 
 #------------------------------------------
-# 6. RESUMEN DE ARCHIVOS GENERADOS
+# PARTE ADICIONAL 2: RESUMEN DE ARCHIVOS GENERADOS
 #------------------------------------------
 cat(yellow("\n--- RESUMEN DE ARCHIVOS GENERADOS ---\n"))
 
