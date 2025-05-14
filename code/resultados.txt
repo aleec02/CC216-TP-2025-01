@@ -1,0 +1,266 @@
+[1] "Directorio del proyecto: D:/@aleec02/CC216-TP-2025-1"
+Directorio del proyecto: D:/@aleec02/CC216-TP-2025-1 
+Directorio de datos: D:/@aleec02/CC216-TP-2025-1/data 
+Directorio de código: D:/@aleec02/CC216-TP-2025-1/code 
+Cargando datos desde: D:/@aleec02/CC216-TP-2025-1/data/hotel_bookings.csv 
+Dataset limpio guardado en: D:/@aleec02/CC216-TP-2025-1/data/hotel_bookings_limpio.csv 
+
+--- ANÁLISIS DE DUPLICADOS EN EL DATASET ORIGINAL ---
+• Dataset original: 119390 filas
+• Dataset sin duplicados: 119390 filas
+• Duplicados eliminados: 0 filas
+
+• Porcentaje de duplicados: 0 %
+• Porcentaje de registros únicos: 100 %
+
+Impacto de la eliminación de duplicados:
+De cada 100 filas en el dataset original, 100 eran registros únicos y 0 eran duplicados.
+
+--- COMPARACIÓN DE DIMENSIONES ---
+1. CSV original (sin procesar): 119390 filas x 32 columnas
+2. Dataset después de eliminar duplicados: 119390 filas x 32 columnas
+3. Dataset limpio (transformado): 87396 filas x 32 columnas
+• No se encontraron filas duplicadas en el dataset original
+• Durante la limpieza:  Se eliminaron 31994 filas por filtros aplicados 
+• No se modificó la estructura de columnas durante la transformación
+
+INFORME TÉCNICO DE TRANSFORMACIONES - ANTES vs DESPUÉS:
+• Imputación de valores faltantes:
+  - Variable 'children':  4  valores NA (antes) →  0  valores NA (después)
+
+• Rangos de valores numéricos antes y después de winsorización:
+  - lead_time: [0, 737] → [0, 365] (3148 valores ajustados)
+  - adults: [0, 55] → [1, 4] (419 valores ajustados -  403 valores 0→1, 16 valores >4→4)
+  - stays_in_weekend_nights: [0, 19] → [0, 14] (5 valores ajustados)
+  - stays_in_week_nights: [0, 50] → [0, 14] (242 valores ajustados)
+  - adr: [-6.38, 5400] → [0, 1000] (2 valores ajustados -  1 valores negativos→0, 1 valores >1000→1000)
+  - children: [0, 10] → [0, 3] (1 valores ajustados)
+  - babies: [0, 10] → [0, 2] (2 valores ajustados)
+
+• Correcciones de inconsistencias lógicas:
+  - Reservas con estancia de 0 días:  715  (antes) →  0  (después)
+  - Reservas sin adultos:  403  (antes) →  0  (después)
+
+--- ANÁLISIS POR TIPO DE HOTEL ---
+
+Distribución de reservas por tipo de hotel:
+
+Distribución de reservas completadas (no canceladas) por tipo de hotel:
+
+--- ANÁLISIS DE TENDENCIA DE DEMANDA ---
+
+--- TENDENCIA DE RESERVAS A LO LARGO DEL TIEMPO ---
+
+Datos de reservas por período (primeros 10 meses):
+
+
+Estadísticas de resumen:
+- Período con mayor cantidad de reservas: 2017-05 con 4575 reservas
+- Período con menor cantidad de reservas: 2015-11 con 1665 reservas
+- Tasa de cancelación promedio: 26.3 %
+
+Tendencia general: AUMENTO del 161.7 % en reservas totales desde 2015-07 hasta 2017-08 
+
+Reservas por año con porcentajes:
+
+--- ANÁLISIS DE TEMPORADAS ---
+
+Reservas por mes:
+
+Clasificación de temporadas por mes:
+
+--- ANÁLISIS DE PERÍODOS DE BAJA DEMANDA ---
+
+Meses con menor demanda de reservas:
+
+Combinaciones de mes y día con menor demanda (10 primeros):
+
+--- ANÁLISIS DE PERÍODOS DE ALTA DEMANDA ---
+
+Meses con mayor demanda de reservas:
+
+Combinaciones de mes y día con mayor demanda (10 primeros):
+
+--- COMPARATIVA DE MESES DE MAYOR Y MENOR DEMANDA ---
+
+Mes con MAYOR demanda: 8 con 11257 reservas
+Mes con MENOR demanda: 1 con 4693 reservas
+
+--- ANÁLISIS DE RESERVAS CON NIÑOS Y/O BEBÉS ---
+
+Análisis de reservas con menores:
+- Reservas con niños: 8364 ( 9.57 %)
+- Reservas con bebés: 914 ( 1.05 %)
+- Reservas con niños y/o bebés: 9103 ( 10.42 %)
+- Total de reservas: 87396 
+
+Reservas con menores por tipo de hotel:
+
+--- ANÁLISIS DE ESPACIOS DE ESTACIONAMIENTO ---
+
+Análisis de necesidad de estacionamiento:
+- Reservas que requieren estacionamiento: 7313 ( 8.37 %)
+- Reservas sin requerimiento de estacionamiento: 80083 ( 91.63 %)
+
+Necesidad de estacionamiento por tipo de hotel:
+
+Necesidad de estacionamiento por tipo de cliente:
+
+--- ANÁLISIS DE CANCELACIONES POR MES ---
+
+Cancelaciones por mes:
+
+Tasas de cancelación por hotel y mes (primeras filas):
+
+--- ANÁLISIS ADICIONAL: RELACIONES ENTRE VARIABLES ---
+
+Relación entre tiempo de anticipación (lead_time) y cancelación:
+
+Duración promedio de estancia por tipo de hotel:
+
+1. Análisis por tipo de hotel:
+   - El hotel tipo '1' tiene mayor cantidad de reservas (53428 reservas, 61.13%).
+   - Para reservas completadas, el hotel tipo ' 1 ' sigue siendo el preferido.
+
+2. Tendencia de demanda:
+   - Comparando 2017 con 2016, hubo un cambio del -25.24% en el número total de reservas.
+   - La tendencia general indica que  está disminuyendo  la demanda con el tiempo.
+   - Tasa de cancelación en 2017: 31.9%, frente a 26.4% en 2016.
+
+3. Temporadas de reserva:
+   - Temporada ALTA:  May, July, August 
+   - Temporada MEDIA:  March, April, June, September, October 
+   - Temporada BAJA:  January, February, November, December 
+
+4. Períodos de menor demanda:
+   - El mes con MENOR demanda es:  1  con  4693  reservas.
+   - La combinación mes-día con MENOR demanda es:  2 - 29  con  66  reservas.
+
+5. Períodos de mayor demanda:
+   - El mes con MAYOR demanda es:  8  con  11257  reservas.
+   - La combinación mes-día con MAYOR demanda es:  8 - 1  con  455  reservas.
+
+6. Comparativa extremos de demanda:
+   - Diferencia entre el mes de mayor y menor demanda: 6564 reservas (139.87% más en temporada alta).
+   - El mes de máxima demanda (8) tiene 375 reservas diarias en promedio.
+   - El mes de mínima demanda (1) tiene 156 reservas diarias en promedio.
+
+8. Análisis de reservas con niños y/o bebés:
+   - Un 10.42 % de las reservas incluyen niños y/o bebés ( 9103 reservas).
+   - El hotel tipo ' Resort Hotel ' tiene mayor porcentaje de reservas con menores ( 11.39 %).
+
+9. Importancia de espacios de estacionamiento:
+   - Solamente el 8.37 % de las reservas requieren espacios de estacionamiento.
+   - Por tipo de hotel, ' Resort Hotel ' tiene mayor demanda de estacionamiento ( 15.95 %).
+   - El tipo de cliente con mayor demanda de estacionamiento es ' Group ' con  9.38 % de reservas.
+
+10. Meses con más cancelaciones:
+   - El mes con mayor tasa de cancelación es ' 8 ' ( 32.18 %).
+   - El mes con mayor cantidad absoluta de cancelaciones es ' 8 ' ( 3623  reservas canceladas).
+
+4. Hallazgos adicionales:
+   - Las reservas que terminan canceladas tienen un tiempo de anticipación (lead_time) promedio de  104.9038  días, mientras que las no canceladas tienen  69.7867  días en promedio.
+   - La duración promedio de estancia en el hotel tipo ' City Hotel ' es de  3.15  noches, y en ' Resort Hotel ' es de  4.38  noches.
+
+--- VISUALIZACIONES CONSOLIDADAS ---
+Creando visualización: Demanda por tipo de hotel...
+Creando visualización: Tendencia de demanda a lo largo del tiempo...
+Creando visualización: Temporadas de reserva...
+Creando visualización: Reservas con niños y/o bebés...
+Creando visualización: Estacionamiento y cancelaciones por mes...
+TableGrob (3 x 1) "arrange": 3 grobs
+
+--- TABLAS RESUMEN ---
+
+Top 5 meses con mayor demanda:
+
+Top 5 meses con mayor tasa de cancelación:
+
+Comparación entre tipos de hotel:
+
+Relación entre tiempo de anticipación (lead_time) y tasa de cancelación:
+
+--- CONCLUSIONES GENERALES ---
+
+1. Demanda por tipo de hotel:
+   - El City Hotel representa el 61.13 % del total de reservas, frente al 38.87 % del Resort Hotel, lo que indica una clara preferencia por hoteles urbanos.
+   - Sin embargo, la tasa de cancelación del City Hotel ( 30.04 %) es significativamente mayor que la del Resort Hotel ( 23.48 %), lo que puede afectar a la rentabilidad real.
+
+2. Tendencia de demanda:
+   - La demanda muestra claras fluctuaciones estacionales con picos en los meses de verano.
+   - Los meses con mayor demanda son: August, July, May .
+   - Se observa una tendencia general  decreciente  en el número total de reservas a lo largo del tiempo analizado.
+
+3. Temporadas de reserva:
+   - Temporada ALTA: Claramente identificada en los meses de  May, July, August .
+   - Temporada BAJA: Principalmente en los meses de  January, February, November, December .
+   - Esta marcada estacionalidad sugiere oportunidades para estrategias de precios dinámicos y promociones.
+
+4. Reservas con niños y/o bebés:
+   - Solo el 10.42 % de las reservas totales incluyen niños y/o bebés.
+   - El Resort Hotel tiene un porcentaje mayor de reservas con niños ( 10.09 %) en comparación con el City Hotel ( 9.24 %), lo que sugiere que es más atractivo para familias.
+
+5. Espacios de estacionamiento:
+   - La demanda de espacios de estacionamiento es baja en general, con solo un  8.37 % del total de reservas.
+   - El Resort Hotel tiene mayor demanda de estacionamiento ( 15.95 %) que el City Hotel ( 3.55 %), posiblemente debido a su ubicación más alejada del centro urbano.
+
+6. Cancelaciones:
+   - La tasa global de cancelación es del 27.49 %.
+   - Los meses con mayor tasa de cancelación son:  August, July, April .
+   - Existe una clara correlación entre el tiempo de anticipación (lead_time) y la probabilidad de cancelación:  reservas hechas con más de 180 días de anticipación tienen una tasa de cancelación del  39.74 %, mientras que las realizadas con menos de 7 días tienen solo un  8.43 %.
+
+--- RECOMENDACIONES ESTRATÉGICAS ---
+
+1. Gestión de demanda y precios:
+   - Implementar precios dinámicos más agresivos durante la temporada alta ( May, July, August ).
+   - Desarrollar paquetes especiales y promociones para impulsar la demanda durante los meses de temporada baja ( January, February, November, December ).
+   - Para el City Hotel, enfocarse en mejorar la tasa de conversión y reducir cancelaciones, que actualmente son más altas que en el Resort Hotel.
+
+2. Segmentación de clientes:
+   - Resort Hotel: Desarrollar más servicios y amenidades orientados a familias con niños, dado su mayor porcentaje de este tipo de reservas ( 10.09 %).
+   - City Hotel: Enfocarse en el segmento de viajeros individuales y parejas sin niños, que constituyen la gran mayoría de su clientela.
+   - Dado que solo el 8.37 % de reservas requieren estacionamiento, considerar reducir espacios de estacionamiento o reutilizarlos para otras amenidades, especialmente en el City Hotel.
+
+3. Gestión de cancelaciones:
+   - Implementar políticas escalonadas de depósito basadas en el tiempo de anticipación, con mayores garantías para reservas con más de 90 días de antelación, que tienen tasas de cancelación del  34.98 % o superiores.
+   - Desarrollar estrategias específicas de retención para los meses con mayor tasa de cancelación ( August, July, April ), como recordatorios personalizados, confirmación proactiva, o incentivos para mantener la reserva.
+   - Considerar implementar un sistema de overbooking inteligente basado en patrones históricos de cancelación por temporada, tipo de cliente y tiempo de anticipación.
+
+4. Desarrollo de productos y servicios:
+   - Dado que la estancia promedio es relativamente corta ( 3.63  noches), desarrollar paquetes que incentiven estancias más largas, especialmente en temporada baja.
+   - Para el Resort Hotel, continuar desarrollando instalaciones atractivas para familias con niños, que constituyen un segmento importante.
+   - Para el City Hotel, enfocarse en comodidades y servicios que atraigan a viajeros de negocios y turistas urbanos sin niños.
+
+--- GUARDANDO DATASET FINAL ---
+Dataset final guardado en: D:/@aleec02/CC216-TP-2025-1/data/hotel_bookings_final.csv 
+
+Estructura del dataset final:
+'data.frame':	87396 obs. of  8 variables:
+ $ hotel              : chr  "Resort Hotel" "Resort Hotel" "Resort Hotel" "Resort Hotel" ...
+ $ is_canceled        : int  0 0 0 0 0 0 0 1 1 1 ...
+ $ lead_time          : int  342 365 7 13 14 0 9 85 75 23 ...
+ $ lead_time_categoria: Factor w/ 5 levels "0-7 días","8-30 días",..: 5 5 1 2 2 1 2 3 3 2 ...
+ $ arrival_date_month : Factor w/ 12 levels "January","February",..: 7 7 7 7 7 7 7 7 7 7 ...
+ $ Temporada          : chr  "Alta" "Alta" "Alta" "Alta" ...
+ $ total_nights       : int  1 1 1 1 2 2 2 3 3 4 ...
+ $ tipo_familia       : chr  "Sin menores" "Sin menores" "Sin menores" "Sin menores" ...
+
+--- RESUMEN DE ARCHIVOS GENERADOS ---
+
+Datasets:
+- Dataset original: D:/@aleec02/CC216-TP-2025-1/data/hotel_bookings.csv 
+- Dataset limpio: D:/@aleec02/CC216-TP-2025-1/data/hotel_bookings_limpio.csv 
+- Dataset final: D:/@aleec02/CC216-TP-2025-1/data/hotel_bookings_final.csv 
+
+Gráficas finales guardadas en: D:/@aleec02/CC216-TP-2025-1/data/graficas/final 
+- 1_demanda_hotel.jpg: Análisis de demanda por tipo de hotel
+- 2_tendencia_demanda.jpg: Tendencia de demanda a lo largo del tiempo
+- 3_temporadas_reserva.jpg: Temporadas de reserva por mes
+- 4_reservas_familias.jpg: Composición de reservas por tipo de familia
+- 5_estacionamiento_cancelaciones.jpg: Análisis de estacionamiento y cancelaciones
+- 6_comparacion_hoteles.jpg: Tabla comparativa entre tipos de hotel
+- 7_lead_time_cancelacion.jpg: Relación entre tiempo de anticipación y cancelación
+
+=== ANÁLISIS EXPLORATORIO COMPLETADO EXITOSAMENTE ===
+
+Gráficas finales guardadas en: D:/@aleec02/CC216-TP-2025-1/data/graficas/final 

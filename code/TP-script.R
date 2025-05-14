@@ -1,6 +1,4 @@
 sink("resultados.txt")
-
-
 #####################################################
 # PARTE 01: CONFIGURACIÓN INICIAL Y CARGA DE DATOS
 #####################################################
@@ -26,18 +24,16 @@ if (!require("gridExtra", quietly = TRUE)) install.packages("gridExtra")
 
 ## INITIAL SETUP 
 library(tidyverse)
-library(naniar)   # Para análisis de datos faltantes
-library(skimr)    # Para resúmenes estadísticos
-library(knitr)    # Para tablas bonitas
-library(crayon)   # Para colorear la salida en consola
-library(ggplot2)  # Para visualizaciones
-library(gridExtra) # Para organizar múltiples gráficos
+library(naniar)
+library(skimr)
+library(knitr)
+library(crayon)
+library(ggplot2)
+library(gridExtra)
 
-# Definir las rutas de los directorios
 data_dir <- file.path(project_dir, "data")
 code_dir <- file.path(project_dir, "code")
 
-# Verificar que las rutas existen
 if (!dir.exists(data_dir)) {
   stop(red("El directorio de datos no existe:", data_dir))
 }
@@ -45,24 +41,20 @@ if (!dir.exists(code_dir)) {
   stop(red("El directorio de código no existe:", code_dir))
 }
 
-# Mostrar la información de directorios
 cat(green("Directorio del proyecto:"), project_dir, "\n")
 cat(green("Directorio de datos:"), data_dir, "\n")
 cat(green("Directorio de código:"), code_dir, "\n")
 
 
 
-# Ruta al archivo CSV
 CSV_original <- file.path(data_dir, "hotel_bookings.csv")
 if (!file.exists(CSV_original)) {
   stop(red("El archivo CSV no existe:", CSV_original))
 }
 
-# Cargar los datos
 cat(green("Cargando datos desde:"), CSV_original, "\n")
 hotel_data <- read.csv(CSV_original, header = TRUE, stringsAsFactors = FALSE)
 
-# Eliminar duplicados
 hotel_data <- unique(hotel_data)
 
 # Inspección inicial
@@ -78,19 +70,16 @@ str(hotel_data)
 cat(yellow("\n--- RESUMEN ESTADÍSTICO BÁSICO (TODAS LAS COLUMNAS) ---\n"))
 print(summary(hotel_data))
 
-# Análisis adicional con skimr para obtener más detalles
 cat(yellow("\n--- ANÁLISIS DETALLADO CON SKIMR ---\n"))
 print(skim(hotel_data))
 
 
-# Rutas para guardar los datasets procesados
 CSV_limpio <- file.path(data_dir, "hotel_bookings_limpio.csv")
 CSV_final <- file.path(data_dir, "hotel_bookings_final.csv")
 
 cat(green("\nRutas para guardar datasets procesados:"), "\n")
 cat("Dataset limpio:", CSV_limpio, "\n")
 cat("Dataset final (si es necesario):", CSV_final, "\n")
-
 
 
 
@@ -179,7 +168,6 @@ numeric_vars <- c(
   "total_of_special_requests"
 )
 
-# Aplicar la función a variables numéricas clave
 outlier_summary <- do.call(rbind, lapply(numeric_vars, function(var) {
   outlier_stats(hotel_data, var)
 }))
@@ -205,7 +193,6 @@ variables_interes <- c("lead_time", "adults", "adr", "stays_in_week_nights", "st
 for (var in variables_interes) {
   mostrar_extremos(hotel_data, var)
 }
-
 
 
 # Crear histogramas individuales para variables clave
@@ -283,7 +270,6 @@ cat("   - lead_time: Mantener valores hasta 365 días (1 año), recortar valores
 cat("   - adults: Valores superiores a 4 parecen errores, considerar recortar a un máximo razonable\n")
 cat("   - stays_in_weekend_nights y stays_in_week_nights: Establecer límites razonables (ej. máximo 14 días)\n")
 cat("   - adr: Eliminar valores negativos y recortar valores extremadamente altos (ej. > 1000)\n")
-
 
 
 
@@ -399,13 +385,11 @@ print(outlier_summary_limpio)
 
 
 
-
 #------------------------------------------
 # 4.5 GUARDAR GRÁFICAS COMO JPG EN DATA FOLDER
 #------------------------------------------
 cat(yellow("\n--- GUARDANDO GRÁFICAS EN FORMATO JPG ---\n"))
 
-# Crear subfolder para las gráficas si no existe
 graphics_dir <- file.path(data_dir, "graficas")
 if (!dir.exists(graphics_dir)) {
   dir.create(graphics_dir)
@@ -414,7 +398,6 @@ if (!dir.exists(graphics_dir)) {
   cat("Usando directorio existente para gráficas:", graphics_dir, "\n")
 }
 
-# Crear subfolder para gráficas de datos limpios
 graphics_clean_dir <- file.path(graphics_dir, "limpios")
 if (!dir.exists(graphics_clean_dir)) {
   dir.create(graphics_clean_dir)
@@ -423,7 +406,6 @@ if (!dir.exists(graphics_clean_dir)) {
   cat("Usando directorio existente para gráficas limpias:", graphics_clean_dir, "\n")
 }
 
-# Función para crear y guardar histogramas
 crear_y_guardar_histogramas <- function(data, variables, directorio) {
   graficas_guardadas <- c()
   
@@ -431,7 +413,6 @@ crear_y_guardar_histogramas <- function(data, variables, directorio) {
     # Nombre del archivo para guardar
     filename <- file.path(directorio, paste0("histograma_", var, ".jpg"))
     
-    # Crear histograma según la variable
     if(var == "lead_time") {
       p <- ggplot(data, aes(x = .data[[var]])) +
         geom_histogram(bins = 30, fill = "steelblue", color = "black") +
@@ -466,7 +447,6 @@ crear_y_guardar_histogramas <- function(data, variables, directorio) {
   return(graficas_guardadas)
 }
 
-# Guardar histogramas para variables de interés
 cat("\nGuardando histogramas para datos originales...\n")
 histogramas_originales <- crear_y_guardar_histogramas(
   hotel_data, 
@@ -474,7 +454,6 @@ histogramas_originales <- crear_y_guardar_histogramas(
   graphics_dir
 )
 
-# Guardar histogramas para datos limpios
 cat("\nGuardando histogramas para datos limpios...\n")
 histogramas_limpios <- crear_y_guardar_histogramas(
   hotel_data_limpio, 
@@ -482,44 +461,228 @@ histogramas_limpios <- crear_y_guardar_histogramas(
   graphics_clean_dir
 )
 
-# Resumir gráficas guardadas
 cat("\nTotal de archivos guardados:", 
     length(c(histogramas_originales, histogramas_limpios)), "\n")
 
 
 
 
-
-
-
-
 #------------------------------------------
-# PARTE 05. GUARDAR DATASET LIMPIO
+# PARTE 05. GUARDAR DATASET LIMPIO Y COMPARAR DIMENSIONES
 #------------------------------------------
-cat(yellow("\n--- GUARDANDO DATASET LIMPIO ---\n"))
+cat(yellow("\n--- GUARDANDO DATASET LIMPIO Y COMPARANDO DIMENSIONES ---\n"))
 
-# Guardar dataset limpio
+# Primero guardar el dataset limpio
 write.csv(hotel_data_limpio, CSV_limpio, row.names = FALSE)
 cat("Dataset limpio guardado en:", CSV_limpio, "\n")
 
-# Mostrar comparación de dimensiones antes y después de la limpieza
+# Análisis de duplicados en el dataset original
+cat(yellow("\n--- ANÁLISIS DE DUPLICADOS EN EL DATASET ORIGINAL ---\n"))
+
+# Cálculo básico de duplicados
+filas_originales <- nrow(hotel_data_original)
+filas_sin_duplicados <- nrow(hotel_data)
+filas_duplicadas <- filas_originales - filas_sin_duplicados
+
+# Cálculo de porcentajes
+porcentaje_duplicados <- round((filas_duplicadas / filas_originales) * 100, 2)
+porcentaje_unicos <- round((filas_sin_duplicados / filas_originales) * 100, 2)
+
+# Mostrar resultados
+cat("• Dataset original:", filas_originales, "filas\n")
+cat("• Dataset sin duplicados:", filas_sin_duplicados, "filas\n")
+cat("• Duplicados eliminados:", filas_duplicadas, "filas\n\n")
+
+cat("• Porcentaje de duplicados:", porcentaje_duplicados, "%\n")
+cat("• Porcentaje de registros únicos:", porcentaje_unicos, "%\n\n")
+
+cat("Impacto de la eliminación de duplicados:\n")
+cat(sprintf("De cada 100 filas en el dataset original, %.0f eran registros únicos y %.0f eran duplicados.\n", 
+            porcentaje_unicos, porcentaje_duplicados))
+
 cat(yellow("\n--- COMPARACIÓN DE DIMENSIONES ---\n"))
-cat("Dataset original:", dim(hotel_data)[1], "filas x", dim(hotel_data)[2], "columnas\n")
-cat("Dataset limpio:", dim(hotel_data_limpio)[1], "filas x", dim(hotel_data_limpio)[2], "columnas\n")
 
-# Verificar si hubo cambios
-filas_diff <- dim(hotel_data_limpio)[1] - dim(hotel_data)[1]
-cols_diff <- dim(hotel_data_limpio)[2] - dim(hotel_data)[2]
+# Cargar el CSV original
+hotel_data_original <- read.csv(CSV_original, header = TRUE, stringsAsFactors = FALSE)
+dim_original <- dim(hotel_data_original)
 
-if (filas_diff != 0 || cols_diff != 0) {
-  cat(red("¡Alerta! Las dimensiones cambiaron durante la limpieza:\n"))
-  if (filas_diff != 0) cat("  - Diferencia en filas:", filas_diff, "\n")
-  if (cols_diff != 0) cat("  - Diferencia en columnas:", cols_diff, "\n")
+cat("1. CSV original (sin procesar):", dim_original[1], "filas x", dim_original[2], "columnas\n")
+cat("2. Dataset después de eliminar duplicados:", dim(hotel_data)[1], "filas x", dim(hotel_data)[2], "columnas\n")
+cat("3. Dataset limpio (transformado):", dim(hotel_data_limpio)[1], "filas x", dim(hotel_data_limpio)[2], "columnas\n")
+
+# Verificar si hubo cambios entre original y después de eliminar duplicados
+filas_diff_1 <- dim(hotel_data)[1] - dim_original[1]
+if (filas_diff_1 != 0) {
+  cat(blue("• Al eliminar duplicados: ", 
+           ifelse(filas_diff_1 < 0, 
+                  paste("Se eliminaron", abs(filas_diff_1), "filas duplicadas"), 
+                  paste("Atención: Aumentaron", filas_diff_1, "filas (comportamiento no esperado)")), 
+           "\n"))
 } else {
-  cat(green("✓ Las dimensiones se mantuvieron intactas durante la limpieza.\n"))
-  cat("  No se eliminaron filas ni se agregaron/eliminaron columnas.\n")
-  cat("  Solo se modificaron los valores para corregir outliers y datos faltantes.\n")
+  cat(blue("• No se encontraron filas duplicadas en el dataset original\n"))
 }
+
+# Verificar cambios entre dataset sin duplicados y dataset limpio
+filas_diff_2 <- dim(hotel_data_limpio)[1] - dim(hotel_data)[1]
+cols_diff_2 <- dim(hotel_data_limpio)[2] - dim(hotel_data)[2]
+
+if (filas_diff_2 != 0) {
+  cat(red("• Durante la limpieza: ", 
+          ifelse(filas_diff_2 < 0, 
+                 paste("Se eliminaron", abs(filas_diff_2), "filas por filtros aplicados"), 
+                 paste("Aumentaron", filas_diff_2, "filas (verificar operaciones de join)")), 
+          "\n"))
+} else {
+  cat(blue("• Durante la limpieza: El número exacto de filas se mantuvo constante (", 
+           dim(hotel_data_limpio)[1], " filas)\n"))
+}
+
+if (cols_diff_2 != 0) {
+  # Identificar las columnas adicionales
+  cols_originales <- colnames(hotel_data)
+  cols_limpias <- colnames(hotel_data_limpio)
+  cols_nuevas <- setdiff(cols_limpias, cols_originales)
+  
+  cat(blue("• Se crearon", cols_diff_2, "columnas derivadas durante la transformación:\n"))
+  for (col in cols_nuevas) {
+    cat("  - ", col, "\n")
+  }
+} else {
+  cat(blue("• No se añadieron columnas adicionales durante la transformación\n"))
+}
+
+# Informe técnico detallado con comparaciones antes/después
+cat(yellow("\nINFORME TÉCNICO DE TRANSFORMACIONES - ANTES vs DESPUÉS:\n"))
+
+# Imputación de NAs
+na_antes <- sum(is.na(hotel_data$children))
+na_despues <- sum(is.na(hotel_data_limpio$children))
+cat("• Imputación de valores faltantes:\n")
+cat("  - Variable 'children': ", na_antes, " valores NA (antes) → ", na_despues, " valores NA (después)\n")
+
+# Winsorización y corrección de valores atípicos
+cat("\n• Rangos de valores numéricos antes y después de winsorización:\n")
+
+# Función para mostrar comparaciones de rangos
+mostrar_comparacion <- function(variable, min_antes, max_antes, min_despues, max_despues, num_ajustados = NULL, descripcion = NULL) {
+  if (!is.null(num_ajustados) && num_ajustados > 0) {
+    cat("  - ", variable, ": [", min_antes, ", ", max_antes, "] → [", min_despues, ", ", max_despues, 
+        "] (", num_ajustados, " valores ajustados", ifelse(!is.null(descripcion), paste(" - ", descripcion), ""), ")\n", sep="")
+  } else {
+    cat("  - ", variable, ": [", min_antes, ", ", max_antes, "] → [", min_despues, ", ", max_despues, "]\n", sep="")
+  }
+}
+
+# lead_time
+lead_time_antes <- range(hotel_data$lead_time)
+lead_time_despues <- range(hotel_data_limpio$lead_time)
+num_ajustados_lead <- sum(hotel_data$lead_time > 365)
+mostrar_comparacion("lead_time", lead_time_antes[1], lead_time_antes[2], 
+                    lead_time_despues[1], lead_time_despues[2], num_ajustados_lead)
+
+# adults
+adults_antes <- range(hotel_data$adults)
+adults_despues <- range(hotel_data_limpio$adults)
+num_ceros_adults <- sum(hotel_data$adults == 0)
+num_grandes_adults <- sum(hotel_data$adults > 4)
+mostrar_comparacion("adults", adults_antes[1], adults_antes[2], 
+                    adults_despues[1], adults_despues[2], 
+                    num_ceros_adults + num_grandes_adults,
+                    paste(num_ceros_adults, "valores 0→1,", num_grandes_adults, "valores >4→4"))
+
+# stays_in_weekend_nights
+weekend_antes <- range(hotel_data$stays_in_weekend_nights)
+weekend_despues <- range(hotel_data_limpio$stays_in_weekend_nights)
+num_ajustados_weekend <- sum(hotel_data$stays_in_weekend_nights > 14)
+mostrar_comparacion("stays_in_weekend_nights", weekend_antes[1], weekend_antes[2], 
+                    weekend_despues[1], weekend_despues[2], num_ajustados_weekend)
+
+# stays_in_week_nights
+week_antes <- range(hotel_data$stays_in_week_nights)
+week_despues <- range(hotel_data_limpio$stays_in_week_nights)
+num_ajustados_week <- sum(hotel_data$stays_in_week_nights > 14)
+mostrar_comparacion("stays_in_week_nights", week_antes[1], week_antes[2], 
+                    week_despues[1], week_despues[2], num_ajustados_week)
+
+# adr
+adr_antes <- range(hotel_data$adr)
+adr_despues <- range(hotel_data_limpio$adr)
+num_neg_adr <- sum(hotel_data$adr < 0)
+num_altos_adr <- sum(hotel_data$adr > 1000)
+mostrar_comparacion("adr", adr_antes[1], adr_antes[2], 
+                    adr_despues[1], adr_despues[2], 
+                    num_neg_adr + num_altos_adr,
+                    paste(num_neg_adr, "valores negativos→0,", num_altos_adr, "valores >1000→1000"))
+
+# children
+children_antes <- range(hotel_data$children, na.rm=TRUE)
+children_despues <- range(hotel_data_limpio$children)
+num_ajustados_children <- sum(hotel_data$children > 3, na.rm=TRUE)
+mostrar_comparacion("children", children_antes[1], children_antes[2], 
+                    children_despues[1], children_despues[2], num_ajustados_children)
+
+# babies
+babies_antes <- range(hotel_data$babies)
+babies_despues <- range(hotel_data_limpio$babies)
+num_ajustados_babies <- sum(hotel_data$babies > 2)
+mostrar_comparacion("babies", babies_antes[1], babies_antes[2], 
+                    babies_despues[1], babies_despues[2], num_ajustados_babies)
+
+# Correcciones lógicas
+cat("\n• Correcciones de inconsistencias lógicas:\n")
+
+# Reservas sin noches
+reservas_sin_noches_antes <- sum(hotel_data$stays_in_weekend_nights == 0 & hotel_data$stays_in_week_nights == 0)
+reservas_sin_noches_despues <- sum(hotel_data_limpio$stays_in_weekend_nights == 0 & hotel_data_limpio$stays_in_week_nights == 0)
+cat("  - Reservas con estancia de 0 días: ", reservas_sin_noches_antes, " (antes) → ", 
+    reservas_sin_noches_despues, " (después)\n")
+
+# Reservas sin adultos
+reservas_sin_adultos_antes <- sum(hotel_data$adults == 0)
+reservas_sin_adultos_despues <- sum(hotel_data_limpio$adults == 0)
+cat("  - Reservas sin adultos: ", reservas_sin_adultos_antes, " (antes) → ", 
+    reservas_sin_adultos_despues, " (después)\n")
+
+# Variables derivadas
+if (cols_diff_2 > 0) {
+  cols_originales <- colnames(hotel_data)
+  cols_limpias <- colnames(hotel_data_limpio)
+  cols_nuevas <- setdiff(cols_limpias, cols_originales)
+  
+  cat("\n• Variables derivadas creadas (", length(cols_nuevas), "):\n")
+  for (col in cols_nuevas) {
+    # Descripción basada en el nombre de la columna
+    descripcion <- switch(col,
+                          "arrival_yearmonth" = "Combinación de año-mes para análisis temporal",
+                          "tiene_ninos" = "Indicador booleano si la reserva incluye niños",
+                          "tiene_bebes" = "Indicador booleano si la reserva incluye bebés",
+                          "tiene_menores" = "Indicador booleano si la reserva incluye niños o bebés",
+                          "requiere_estacionamiento" = "Indicador booleano si la reserva requiere estacionamiento",
+                          "total_nights" = "Suma total de noches de estancia (semana + fin de semana)",
+                          "tipo_familia" = "Categorización de reservas según composición familiar",
+                          "lead_time_categoria" = "Categorización del tiempo de anticipación",
+                          "Temporada" = "Clasificación de temporada (Alta/Media/Baja)",
+                          "Indicador derivado") # Descripción genérica
+    
+    if (col %in% colnames(hotel_data_limpio)) {
+      # Si tenemos acceso a la columna en este punto, mostrar estadísticas básicas
+      if (is.numeric(hotel_data_limpio[[col]])) {
+        cat("  - ", col, ": ", descripcion, " (Rango: [", min(hotel_data_limpio[[col]], na.rm=TRUE), 
+            ", ", max(hotel_data_limpio[[col]], na.rm=TRUE), "])\n", sep="")
+      } else if (is.factor(hotel_data_limpio[[col]]) || is.character(hotel_data_limpio[[col]])) {
+        # Para factores o caracteres mostrar número de categorías únicas
+        num_categorias <- length(unique(hotel_data_limpio[[col]]))
+        cat("  - ", col, ": ", descripcion, " (", num_categorias, " categorías únicas)\n", sep="")
+      } else {
+        cat("  - ", col, ": ", descripcion, "\n", sep="")
+      }
+    } else {
+      cat("  - ", col, ": ", descripcion, "\n", sep="")
+    }
+  }
+}
+
+
 
 
 
@@ -529,12 +692,8 @@ if (filas_diff != 0 || cols_diff != 0) {
 # PARTE 06: ANÁLISIS EDA
 #####################################################
 
-cat(green("\n=== RONDA 4: ANÁLISIS EXPLORATORIO - PREGUNTAS CLAVE (PARTE 1) ===\n"))
-
-# Cargar el dataset limpio
 hotel_data_limpio <- read.csv(CSV_limpio, header = TRUE, stringsAsFactors = FALSE)
 
-# Crear directorio para gráficas de análisis si no existe
 graphics_analysis_dir <- file.path(graphics_dir, "analisis")
 if (!dir.exists(graphics_analysis_dir)) {
   dir.create(graphics_analysis_dir)
@@ -556,7 +715,6 @@ reservas_por_hotel_df$Porcentaje <- round(
   reservas_por_hotel_df$Cantidad / sum(reservas_por_hotel_df$Cantidad) * 100, 2
 )
 
-# Mostrar resultados
 cat("\nDistribución de reservas por tipo de hotel:\n")
 print(reservas_por_hotel_df)
 
@@ -573,7 +731,6 @@ plot_hoteles <- ggplot(reservas_por_hotel_df, aes(x = Tipo_Hotel, y = Cantidad, 
 
 print(plot_hoteles)
 
-# Guardar gráfica
 ggsave(file.path(graphics_analysis_dir, "reservas_por_hotel.jpg"), 
        plot_hoteles, width = 8, height = 6, dpi = 300)
 
@@ -612,7 +769,6 @@ ggsave(file.path(graphics_analysis_dir, "reservas_completadas_por_hotel.jpg"),
 
 #------------------------------------------
 # EDA 02: ¿ESTÁ AUMENTANDO LA DEMANDA CON EL TIEMPO?
-#------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE TENDENCIA DE DEMANDA ---\n"))
 
 # Análisis por año y mes
@@ -1516,22 +1672,17 @@ cat("   - La duración promedio de estancia en el hotel tipo '",
 # PARTE 08: VISUALIZACIONES Y CONCLUSIONES FINALES
 #####################################################
 
-cat(green("\n=== RONDA 6: VISUALIZACIONES Y CONCLUSIONES FINALES ===\n"))
-
-# Verificar si necesitamos recargar el dataset limpio
 if (!exists("hotel_data_limpio") || !is.data.frame(hotel_data_limpio)) {
   cat("Recargando dataset limpio...\n")
   hotel_data_limpio <- read.csv(CSV_limpio, header = TRUE, stringsAsFactors = FALSE)
 }
 
-# Crear directorio para gráficas finales
 graphics_final_dir <- file.path(graphics_dir, "final")
 if (!dir.exists(graphics_final_dir)) {
   dir.create(graphics_final_dir)
   cat("Creado directorio para gráficas finales:", graphics_final_dir, "\n")
 }
 
-# Definir una paleta de colores consistente para todas las visualizaciones
 colores_principales <- c("#3498db", "#2ecc71", "#e74c3c", "#f39c12", "#9b59b6")
 colores_hotel <- c("City Hotel" = "#3498db", "Resort Hotel" = "#2ecc71")
 
@@ -1549,7 +1700,6 @@ demanda_hotel <- hotel_data_limpio %>%
   summarise(Cantidad = n()) %>%
   mutate(Estado = ifelse(is_canceled == 0, "Confirmada", "Cancelada"))
 
-# Crear gráfico
 plot_demanda_hotel <- ggplot(demanda_hotel, 
                              aes(x = hotel, y = Cantidad, fill = Estado)) +
   geom_bar(stat = "identity", position = "stack") +
@@ -1566,8 +1716,6 @@ plot_demanda_hotel <- ggplot(demanda_hotel,
         legend.position = "bottom")
 
 print(plot_demanda_hotel)
-
-# Guardar gráfica
 ggsave(file.path(graphics_final_dir, "1_demanda_hotel.jpg"), 
        plot_demanda_hotel, width = 10, height = 7, dpi = 300)
 
@@ -1604,7 +1752,6 @@ plot_tendencia_final <- ggplot(tendencia_temporal,
 
 print(plot_tendencia_final)
 
-# Guardar gráfica
 ggsave(file.path(graphics_final_dir, "2_tendencia_demanda.jpg"), 
        plot_tendencia_final, width = 12, height = 7, dpi = 300)
 
@@ -1659,7 +1806,6 @@ plot_temporadas <- ggplot(reservas_por_mes,
 
 print(plot_temporadas)
 
-# Guardar gráfica
 ggsave(file.path(graphics_final_dir, "3_temporadas_reserva.jpg"), 
        plot_temporadas, width = 12, height = 8, dpi = 300)
 
@@ -1763,7 +1909,6 @@ plot_cancelaciones_final <- ggplot(cancelaciones_mes,
 if (!require("grid", quietly = TRUE)) install.packages("grid")
 library(grid)
 
-# Combinar gráficos en un panel con título
 combined_plot <- grid.arrange(
   plot_estacionamiento_final, 
   plot_cancelaciones_final, 
@@ -1773,7 +1918,6 @@ combined_plot <- grid.arrange(
 )
 print(combined_plot)
 
-# Guardar gráfico combinado
 ggsave(file.path(graphics_final_dir, "5_estacionamiento_cancelaciones.jpg"), 
        combined_plot, width = 10, height = 10, dpi = 300)
 
@@ -1825,10 +1969,7 @@ comparacion_hoteles <- hotel_data_limpio %>%
 cat("\nComparación entre tipos de hotel:\n")
 print(comparacion_hoteles)
 
-# Crear tabla para guardar
 comparacion_tabla <- tableGrob(comparacion_hoteles, rows = NULL, theme = ttheme_minimal())
-
-# Guardar tabla como imagen
 ggsave(file.path(graphics_final_dir, "6_comparacion_hoteles.jpg"), 
        comparacion_tabla, width = 12, height = 4, dpi = 300)
 
@@ -1862,7 +2003,6 @@ plot_lead_cancelacion <- ggplot(relacion_lead_cancelacion,
 
 print(plot_lead_cancelacion)
 
-# Guardar gráfica
 ggsave(file.path(graphics_final_dir, "7_lead_time_cancelacion.jpg"), 
        plot_lead_cancelacion, width = 10, height = 6, dpi = 300)
 
@@ -2005,11 +2145,8 @@ hotel_data_final$lead_time_categoria <- cut(hotel_data_final$lead_time,
                                             breaks = c(-1, 7, 30, 90, 180, Inf),
                                             labels = c("0-7 días", "8-30 días", "31-90 días", "91-180 días", "Más de 180 días"))
 
-# Guardar el dataset final
 write.csv(hotel_data_final, CSV_final, row.names = FALSE)
 cat("Dataset final guardado en:", CSV_final, "\n")
-
-# Mostrar estructura del dataset final
 cat("\nEstructura del dataset final:\n")
 str(hotel_data_final[, c("hotel", "is_canceled", "lead_time", 
                          "lead_time_categoria", "arrival_date_month", 
@@ -2035,7 +2172,6 @@ cat("- 6_comparacion_hoteles.jpg: Tabla comparativa entre tipos de hotel\n")
 cat("- 7_lead_time_cancelacion.jpg: Relación entre tiempo de anticipación y cancelación\n")
 
 cat(green("\n=== ANÁLISIS EXPLORATORIO COMPLETADO EXITOSAMENTE ===\n"))
-
 
 sink()
 

@@ -5,7 +5,7 @@ Directorio de código: D:/@aleec02/CC216-TP-2025-1/code
 Cargando datos desde: D:/@aleec02/CC216-TP-2025-1/data/hotel_bookings.csv 
 
 --- DIMENSIONES DEL DATASET ---
-[1] 119390     32
+[1] 87396    32
 
 --- PRIMERAS FILAS DEL DATASET ---
          hotel is_canceled lead_time arrival_date_year arrival_date_month arrival_date_week_number
@@ -46,16 +46,16 @@ Cargando datos desde: D:/@aleec02/CC216-TP-2025-1/data/hotel_bookings.csv
 5          Check-Out              2015-07-03
 
 --- ESTRUCTURA DEL DATASET ---
-'data.frame':	119390 obs. of  32 variables:
+'data.frame':	87396 obs. of  32 variables:
  $ hotel                         : chr  "Resort Hotel" "Resort Hotel" "Resort Hotel" "Resort Hotel" ...
- $ is_canceled                   : int  0 0 0 0 0 0 0 0 1 1 ...
- $ lead_time                     : int  342 737 7 13 14 14 0 9 85 75 ...
+ $ is_canceled                   : int  0 0 0 0 0 0 0 1 1 1 ...
+ $ lead_time                     : int  342 737 7 13 14 0 9 85 75 23 ...
  $ arrival_date_year             : int  2015 2015 2015 2015 2015 2015 2015 2015 2015 2015 ...
  $ arrival_date_month            : chr  "July" "July" "July" "July" ...
  $ arrival_date_week_number      : int  27 27 27 27 27 27 27 27 27 27 ...
  $ arrival_date_day_of_month     : int  1 1 1 1 1 1 1 1 1 1 ...
  $ stays_in_weekend_nights       : int  0 0 0 0 0 0 0 0 0 0 ...
- $ stays_in_week_nights          : int  0 0 1 1 2 2 2 2 3 3 ...
+ $ stays_in_week_nights          : int  0 0 1 1 2 2 2 3 3 4 ...
  $ adults                        : int  2 2 1 1 2 2 2 2 2 2 ...
  $ children                      : int  0 0 0 0 0 0 0 0 0 0 ...
  $ babies                        : int  0 0 0 0 0 0 0 0 0 0 ...
@@ -76,64 +76,64 @@ Cargando datos desde: D:/@aleec02/CC216-TP-2025-1/data/hotel_bookings.csv
  $ customer_type                 : chr  "Transient" "Transient" "Transient" "Transient" ...
  $ adr                           : num  0 0 75 75 98 ...
  $ required_car_parking_spaces   : int  0 0 0 0 0 0 0 0 0 0 ...
- $ total_of_special_requests     : int  0 0 0 0 1 1 0 1 1 0 ...
+ $ total_of_special_requests     : int  0 0 0 0 1 0 1 1 0 0 ...
  $ reservation_status            : chr  "Check-Out" "Check-Out" "Check-Out" "Check-Out" ...
  $ reservation_status_date       : chr  "2015-07-01" "2015-07-01" "2015-07-02" "2015-07-02" ...
 
 --- RESUMEN ESTADÍSTICO BÁSICO (TODAS LAS COLUMNAS) ---
-    hotel            is_canceled       lead_time   arrival_date_year arrival_date_month
- Length:119390      Min.   :0.0000   Min.   :  0   Min.   :2015      Length:119390     
- Class :character   1st Qu.:0.0000   1st Qu.: 18   1st Qu.:2016      Class :character  
- Mode  :character   Median :0.0000   Median : 69   Median :2016      Mode  :character  
-                    Mean   :0.3704   Mean   :104   Mean   :2016                        
-                    3rd Qu.:1.0000   3rd Qu.:160   3rd Qu.:2017                        
-                    Max.   :1.0000   Max.   :737   Max.   :2017                        
-                                                                                       
+    hotel            is_canceled       lead_time      arrival_date_year arrival_date_month
+ Length:87396       Min.   :0.0000   Min.   :  0.00   Min.   :2015      Length:87396      
+ Class :character   1st Qu.:0.0000   1st Qu.: 11.00   1st Qu.:2016      Class :character  
+ Mode  :character   Median :0.0000   Median : 49.00   Median :2016      Mode  :character  
+                    Mean   :0.2749   Mean   : 79.89   Mean   :2016                        
+                    3rd Qu.:1.0000   3rd Qu.:125.00   3rd Qu.:2017                        
+                    Max.   :1.0000   Max.   :737.00   Max.   :2017                        
+                                                                                          
  arrival_date_week_number arrival_date_day_of_month stays_in_weekend_nights stays_in_week_nights
- Min.   : 1.00            Min.   : 1.0              Min.   : 0.0000         Min.   : 0.0        
- 1st Qu.:16.00            1st Qu.: 8.0              1st Qu.: 0.0000         1st Qu.: 1.0        
- Median :28.00            Median :16.0              Median : 1.0000         Median : 2.0        
- Mean   :27.17            Mean   :15.8              Mean   : 0.9276         Mean   : 2.5        
- 3rd Qu.:38.00            3rd Qu.:23.0              3rd Qu.: 2.0000         3rd Qu.: 3.0        
- Max.   :53.00            Max.   :31.0              Max.   :19.0000         Max.   :50.0        
+ Min.   : 1.00            Min.   : 1.00             Min.   : 0.000          Min.   : 0.000      
+ 1st Qu.:16.00            1st Qu.: 8.00             1st Qu.: 0.000          1st Qu.: 1.000      
+ Median :27.00            Median :16.00             Median : 1.000          Median : 2.000      
+ Mean   :26.84            Mean   :15.82             Mean   : 1.005          Mean   : 2.625      
+ 3rd Qu.:37.00            3rd Qu.:23.00             3rd Qu.: 2.000          3rd Qu.: 4.000      
+ Max.   :53.00            Max.   :31.00             Max.   :19.000          Max.   :50.000      
                                                                                                 
-     adults          children           babies              meal             country         
- Min.   : 0.000   Min.   : 0.0000   Min.   : 0.000000   Length:119390      Length:119390     
- 1st Qu.: 2.000   1st Qu.: 0.0000   1st Qu.: 0.000000   Class :character   Class :character  
- Median : 2.000   Median : 0.0000   Median : 0.000000   Mode  :character   Mode  :character  
- Mean   : 1.856   Mean   : 0.1039   Mean   : 0.007949                                        
- 3rd Qu.: 2.000   3rd Qu.: 0.0000   3rd Qu.: 0.000000                                        
- Max.   :55.000   Max.   :10.0000   Max.   :10.000000                                        
-                  NA's   :4                                                                  
+     adults          children           babies             meal             country         
+ Min.   : 0.000   Min.   : 0.0000   Min.   : 0.00000   Length:87396       Length:87396      
+ 1st Qu.: 2.000   1st Qu.: 0.0000   1st Qu.: 0.00000   Class :character   Class :character  
+ Median : 2.000   Median : 0.0000   Median : 0.00000   Mode  :character   Mode  :character  
+ Mean   : 1.876   Mean   : 0.1386   Mean   : 0.01082                                        
+ 3rd Qu.: 2.000   3rd Qu.: 0.0000   3rd Qu.: 0.00000                                        
+ Max.   :55.000   Max.   :10.0000   Max.   :10.00000                                        
+                  NA's   :4                                                                 
  market_segment     distribution_channel is_repeated_guest previous_cancellations
- Length:119390      Length:119390        Min.   :0.00000   Min.   : 0.00000      
+ Length:87396       Length:87396         Min.   :0.00000   Min.   : 0.00000      
  Class :character   Class :character     1st Qu.:0.00000   1st Qu.: 0.00000      
  Mode  :character   Mode  :character     Median :0.00000   Median : 0.00000      
-                                         Mean   :0.03191   Mean   : 0.08712      
+                                         Mean   :0.03908   Mean   : 0.03041      
                                          3rd Qu.:0.00000   3rd Qu.: 0.00000      
                                          Max.   :1.00000   Max.   :26.00000      
                                                                                  
  previous_bookings_not_canceled reserved_room_type assigned_room_type booking_changes   deposit_type      
- Min.   : 0.0000                Length:119390      Length:119390      Min.   : 0.0000   Length:119390     
- 1st Qu.: 0.0000                Class :character   Class :character   1st Qu.: 0.0000   Class :character  
- Median : 0.0000                Mode  :character   Mode  :character   Median : 0.0000   Mode  :character  
- Mean   : 0.1371                                                      Mean   : 0.2211                     
- 3rd Qu.: 0.0000                                                      3rd Qu.: 0.0000                     
- Max.   :72.0000                                                      Max.   :21.0000                     
+ Min.   : 0.000                 Length:87396       Length:87396       Min.   : 0.0000   Length:87396      
+ 1st Qu.: 0.000                 Class :character   Class :character   1st Qu.: 0.0000   Class :character  
+ Median : 0.000                 Mode  :character   Mode  :character   Median : 0.0000   Mode  :character  
+ Mean   : 0.184                                                       Mean   : 0.2716                     
+ 3rd Qu.: 0.000                                                       3rd Qu.: 0.0000                     
+ Max.   :72.000                                                       Max.   :21.0000                     
                                                                                                           
     agent             company          days_in_waiting_list customer_type           adr         
- Length:119390      Length:119390      Min.   :  0.000      Length:119390      Min.   :  -6.38  
- Class :character   Class :character   1st Qu.:  0.000      Class :character   1st Qu.:  69.29  
- Mode  :character   Mode  :character   Median :  0.000      Mode  :character   Median :  94.58  
-                                       Mean   :  2.321                         Mean   : 101.83  
-                                       3rd Qu.:  0.000                         3rd Qu.: 126.00  
-                                       Max.   :391.000                         Max.   :5400.00  
+ Length:87396       Length:87396       Min.   :  0.0000     Length:87396       Min.   :  -6.38  
+ Class :character   Class :character   1st Qu.:  0.0000     Class :character   1st Qu.:  72.00  
+ Mode  :character   Mode  :character   Median :  0.0000     Mode  :character   Median :  98.10  
+                                       Mean   :  0.7496                        Mean   : 106.34  
+                                       3rd Qu.:  0.0000                        3rd Qu.: 134.00  
+                                       Max.   :391.0000                        Max.   :5400.00  
                                                                                                 
  required_car_parking_spaces total_of_special_requests reservation_status reservation_status_date
- Min.   :0.00000             Min.   :0.0000            Length:119390      Length:119390          
+ Min.   :0.00000             Min.   :0.0000            Length:87396       Length:87396           
  1st Qu.:0.00000             1st Qu.:0.0000            Class :character   Class :character       
  Median :0.00000             Median :0.0000            Mode  :character   Mode  :character       
- Mean   :0.06252             Mean   :0.5714                                                      
+ Mean   :0.08423             Mean   :0.6986                                                      
  3rd Qu.:0.00000             3rd Qu.:1.0000                                                      
  Max.   :8.00000             Max.   :5.0000                                                      
                                                                                                  
@@ -142,7 +142,7 @@ Cargando datos desde: D:/@aleec02/CC216-TP-2025-1/data/hotel_bookings.csv
 ── Data Summary ────────────────────────
                            Values    
 Name                       hotel_data
-Number of rows             119390    
+Number of rows             87396     
 Number of columns          32        
 _______________________              
 Column type frequency:               
@@ -169,30 +169,30 @@ Group variables            None
 14 reservation_status_date         0             1  10  10     0      926          0
 
 ── Variable type: numeric ───────────────────────────────────────────────────────────────────────────────────
-   skim_variable                  n_missing complete_rate       mean       sd      p0    p25    p50  p75 p100
- 1 is_canceled                            0          1       0.370     0.483     0       0      0      1    1
- 2 lead_time                              0          1     104.      107.        0      18     69    160  737
- 3 arrival_date_year                      0          1    2016.        0.707  2015    2016   2016   2017 2017
- 4 arrival_date_week_number               0          1      27.2      13.6       1      16     28     38   53
- 5 arrival_date_day_of_month              0          1      15.8       8.78      1       8     16     23   31
- 6 stays_in_weekend_nights                0          1       0.928     0.999     0       0      1      2   19
- 7 stays_in_week_nights                   0          1       2.50      1.91      0       1      2      3   50
- 8 adults                                 0          1       1.86      0.579     0       2      2      2   55
- 9 children                               4          1.00    0.104     0.399     0       0      0      0   10
-10 babies                                 0          1       0.00795   0.0974    0       0      0      0   10
-11 is_repeated_guest                      0          1       0.0319    0.176     0       0      0      0    1
-12 previous_cancellations                 0          1       0.0871    0.844     0       0      0      0   26
-13 previous_bookings_not_canceled         0          1       0.137     1.50      0       0      0      0   72
-14 booking_changes                        0          1       0.221     0.652     0       0      0      0   21
-15 days_in_waiting_list                   0          1       2.32     17.6       0       0      0      0  391
-16 adr                                    0          1     102.       50.5      -6.38   69.3   94.6  126 5400
-17 required_car_parking_spaces            0          1       0.0625    0.245     0       0      0      0    8
-18 total_of_special_requests              0          1       0.571     0.793     0       0      0      1    5
+   skim_variable                  n_missing complete_rate      mean     sd      p0  p25    p50  p75 p100
+ 1 is_canceled                            0          1       0.275   0.446    0       0    0      1    1
+ 2 lead_time                              0          1      79.9    86.1      0      11   49    125  737
+ 3 arrival_date_year                      0          1    2016.      0.686 2015    2016 2016   2017 2017
+ 4 arrival_date_week_number               0          1      26.8    13.7      1      16   27     37   53
+ 5 arrival_date_day_of_month              0          1      15.8     8.84     1       8   16     23   31
+ 6 stays_in_weekend_nights                0          1       1.01    1.03     0       0    1      2   19
+ 7 stays_in_week_nights                   0          1       2.63    2.05     0       1    2      4   50
+ 8 adults                                 0          1       1.88    0.627    0       2    2      2   55
+ 9 children                               4          1.00    0.139   0.456    0       0    0      0   10
+10 babies                                 0          1       0.0108  0.114    0       0    0      0   10
+11 is_repeated_guest                      0          1       0.0391  0.194    0       0    0      0    1
+12 previous_cancellations                 0          1       0.0304  0.369    0       0    0      0   26
+13 previous_bookings_not_canceled         0          1       0.184   1.73     0       0    0      0   72
+14 booking_changes                        0          1       0.272   0.727    0       0    0      0   21
+15 days_in_waiting_list                   0          1       0.750  10.0      0       0    0      0  391
+16 adr                                    0          1     106.     55.0     -6.38   72   98.1  134 5400
+17 required_car_parking_spaces            0          1       0.0842  0.282    0       0    0      0    8
+18 total_of_special_requests              0          1       0.699   0.832    0       0    0      1    5
    hist 
- 1 ▇▁▁▁▅
+ 1 ▇▁▁▁▃
  2 ▇▂▁▁▁
- 3 ▃▁▇▁▆
- 4 ▅▇▇▇▅
+ 3 ▂▁▇▁▆
+ 4 ▅▆▇▆▅
  5 ▇▇▇▇▆
  6 ▇▁▁▁▁
  7 ▇▁▁▁▁
@@ -253,45 +253,31 @@ Visualización de datos faltantes (muestra de 5000 registros):
 Análisis específico para la variable 'children':
 Distribución de valores no-NA en 'children':
 
-     0      1      2      3     10   <NA> 
-110796   4861   3652     76      1      4 
+    0     1     2     3    10  <NA> 
+79028  4695  3593    75     1     4 
 
 --- ANÁLISIS DE VALORES ATÍPICOS ---
 
 Análisis estadístico de outliers en variables clave:
-                            Variable    Q1  Q3    IQR Lower_Bound Upper_Bound Outlier_Count
-25%                        lead_time 18.00 160 142.00    -195.000     373.000          3005
-25%1         stays_in_weekend_nights  0.00   2   2.00      -3.000       5.000           265
-25%2            stays_in_week_nights  1.00   3   2.00      -2.000       6.000          3354
-25%3                          adults  2.00   2   0.00       2.000       2.000         29710
-25%4                        children  0.00   0   0.00       0.000       0.000          8590
-25%5                          babies  0.00   0   0.00       0.000       0.000           917
-25%6          previous_cancellations  0.00   0   0.00       0.000       0.000          6484
-25%7  previous_bookings_not_canceled  0.00   0   0.00       0.000       0.000          3620
-25%8                 booking_changes  0.00   0   0.00       0.000       0.000         18076
-25%9            days_in_waiting_list  0.00   0   0.00       0.000       0.000          3698
-25%10                            adr 69.29 126  56.71     -15.775     211.065          3793
-25%11    required_car_parking_spaces  0.00   0   0.00       0.000       0.000          7416
-25%12      total_of_special_requests  0.00   1   1.00      -1.500       2.500          2877
-      Outlier_Percentage
-25%                 2.52
-25%1                0.22
-25%2                2.81
-25%3               24.88
-25%4                7.20
-25%5                0.77
-25%6                5.43
-25%7                3.03
-25%8               15.14
-25%9                3.10
-25%10               3.18
-25%11               6.21
-25%12               2.41
+                            Variable Q1  Q3 IQR Lower_Bound Upper_Bound Outlier_Count Outlier_Percentage
+25%                        lead_time 11 125 114      -160.0       296.0          2396               2.74
+25%1         stays_in_weekend_nights  0   2   2        -3.0         5.0           220               0.25
+25%2            stays_in_week_nights  1   4   3        -3.5         8.5          1531               1.75
+25%3                          adults  2   2   0         2.0         2.0         22899              26.20
+25%4                        children  0   0   0         0.0         0.0          8364               9.57
+25%5                          babies  0   0   0         0.0         0.0           914               1.05
+25%6          previous_cancellations  0   0   0         0.0         0.0          1685               1.93
+25%7  previous_bookings_not_canceled  0   0   0         0.0         0.0          3545               4.06
+25%8                 booking_changes  0   0   0         0.0         0.0         15902              18.20
+25%9            days_in_waiting_list  0   0   0         0.0         0.0           860               0.98
+25%10                            adr 72 134  62       -21.0       227.0          2490               2.85
+25%11    required_car_parking_spaces  0   0   0         0.0         0.0          7313               8.37
+25%12      total_of_special_requests  0   1   1        -1.5         2.5          2673               3.06
 
 Valores extremos en variables clave:
 
 Variable: lead_time 
-Top 5 valores más altos: 737 709 629 629 629 
+Top 5 valores más altos: 737 709 629 629 626 
 
 Variable: adults 
 Top 5 valores más altos: 55 50 40 27 27 
@@ -310,13 +296,13 @@ Histogramas para variables clave:
 Creando histogramas mejorados para variables clave...
 
 --- VERIFICACIÓN DE CONSISTENCIA LÓGICA ---
-Reservas sin adultos: 403 
-Reservas sin noches (0 días de estadía): 715 
+Reservas sin adultos: 385 
+Reservas sin noches (0 días de estadía): 651 
 Inconsistencias entre cancelación y estado (canceladas pero con check-out): 0 
 
 Posibles errores en 'adults':
     0     1     2     3     4     5     6    10    20    26    27    40    50    55 
-  403 23027 89680  6202    62     2     1     1     2     5     2     1     1     1 
+  385 16503 64497  5935    60     2     1     1     2     5     2     1     1     1 
 
 --- ESTRATEGIAS PROPUESTAS ---
 1. Estrategia para datos faltantes:
@@ -362,7 +348,7 @@ Tratamiento de 'babies':
   Después - Max: 2 
 
 --- TRATAMIENTO DE INCONSISTENCIAS LÓGICAS ---
-Reservas con estancia de 0 días: 715 
+Reservas con estancia de 0 días: 651 
 Reservas con estancia de 0 días después de corrección: 0 
 
 --- VERIFICACIÓN DE LIMPIEZA ---
@@ -370,34 +356,20 @@ Reservas con estancia de 0 días después de corrección: 0
 Cantidad de NA después de limpieza: 0 
 
 Resumen de outliers después de limpieza:
-                            Variable    Q1  Q3    IQR Lower_Bound Upper_Bound Outlier_Count
-25%                        lead_time 18.00 160 142.00    -195.000     373.000             0
-25%1         stays_in_weekend_nights  0.00   2   2.00      -3.000       5.000           265
-25%2            stays_in_week_nights  1.00   3   2.00      -2.000       6.000          3354
-25%3                          adults  2.00   2   0.00       2.000       2.000         29710
-25%4                        children  0.00   0   0.00       0.000       0.000          8590
-25%5                          babies  0.00   0   0.00       0.000       0.000           917
-25%6          previous_cancellations  0.00   0   0.00       0.000       0.000          6484
-25%7  previous_bookings_not_canceled  0.00   0   0.00       0.000       0.000          3620
-25%8                 booking_changes  0.00   0   0.00       0.000       0.000         18076
-25%9            days_in_waiting_list  0.00   0   0.00       0.000       0.000          3698
-25%10                            adr 69.29 126  56.71     -15.775     211.065          3793
-25%11    required_car_parking_spaces  0.00   0   0.00       0.000       0.000          7416
-25%12      total_of_special_requests  0.00   1   1.00      -1.500       2.500          2877
-      Outlier_Percentage
-25%                 0.00
-25%1                0.22
-25%2                2.81
-25%3               24.88
-25%4                7.19
-25%5                0.77
-25%6                5.43
-25%7                3.03
-25%8               15.14
-25%9                3.10
-25%10               3.18
-25%11               6.21
-25%12               2.41
+                            Variable Q1  Q3 IQR Lower_Bound Upper_Bound Outlier_Count Outlier_Percentage
+25%                        lead_time 11 125 114      -160.0       296.0          2396               2.74
+25%1         stays_in_weekend_nights  0   2   2        -3.0         5.0           220               0.25
+25%2            stays_in_week_nights  1   4   3        -3.5         8.5          1531               1.75
+25%3                          adults  2   2   0         2.0         2.0         22899              26.20
+25%4                        children  0   0   0         0.0         0.0          8364               9.57
+25%5                          babies  0   0   0         0.0         0.0           914               1.05
+25%6          previous_cancellations  0   0   0         0.0         0.0          1685               1.93
+25%7  previous_bookings_not_canceled  0   0   0         0.0         0.0          3545               4.06
+25%8                 booking_changes  0   0   0         0.0         0.0         15902              18.20
+25%9            days_in_waiting_list  0   0   0         0.0         0.0           860               0.98
+25%10                            adr 72 134  62       -21.0       227.0          2490               2.85
+25%11    required_car_parking_spaces  0   0   0         0.0         0.0          7313               8.37
+25%12      total_of_special_requests  0   1   1        -1.5         2.5          2673               3.06
 
 --- GUARDANDO GRÁFICAS EN FORMATO JPG ---
 Usando directorio existente para gráficas: D:/@aleec02/CC216-TP-2025-1/data/graficas 
@@ -419,29 +391,56 @@ Guardando histogramas para datos limpios...
 
 Total de archivos guardados: 10 
 
---- GUARDANDO DATASET LIMPIO ---
+--- GUARDANDO DATASET LIMPIO Y COMPARANDO DIMENSIONES ---
 Dataset limpio guardado en: D:/@aleec02/CC216-TP-2025-1/data/hotel_bookings_limpio.csv 
 
---- COMPARACIÓN DE DIMENSIONES ---
-Dataset original: 119390 filas x 32 columnas
-Dataset limpio: 119390 filas x 32 columnas
-✓ Las dimensiones se mantuvieron intactas durante la limpieza.
-  No se eliminaron filas ni se agregaron/eliminaron columnas.
-  Solo se modificaron los valores para corregir outliers y datos faltantes.
+--- ANÁLISIS DE DUPLICADOS EN EL DATASET ORIGINAL ---
+• Dataset original: 119390 filas
+• Dataset sin duplicados: 87396 filas
+• Duplicados eliminados: 31994 filas
 
-=== RONDA 4: ANÁLISIS EXPLORATORIO - PREGUNTAS CLAVE (PARTE 1) ===
+• Porcentaje de duplicados: 26.8 %
+• Porcentaje de registros únicos: 73.2 %
+
+Impacto de la eliminación de duplicados:
+De cada 100 filas en el dataset original, 73 eran registros únicos y 27 eran duplicados.
+
+--- COMPARACIÓN DE DIMENSIONES ---
+1. CSV original (sin procesar): 119390 filas x 32 columnas
+2. Dataset después de eliminar duplicados: 87396 filas x 32 columnas
+3. Dataset limpio (transformado): 87396 filas x 32 columnas
+• Al eliminar duplicados:  Se eliminaron 31994 filas duplicadas 
+• Durante la limpieza: El número exacto de filas se mantuvo constante ( 87396  filas)
+• No se añadieron columnas adicionales durante la transformación
+
+INFORME TÉCNICO DE TRANSFORMACIONES - ANTES vs DESPUÉS:
+• Imputación de valores faltantes:
+  - Variable 'children':  4  valores NA (antes) →  0  valores NA (después)
+
+• Rangos de valores numéricos antes y después de winsorización:
+  - lead_time: [0, 737] → [0, 365] (565 valores ajustados)
+  - adults: [0, 55] → [1, 4] (401 valores ajustados -  385 valores 0→1, 16 valores >4→4)
+  - stays_in_weekend_nights: [0, 19] → [0, 14] (5 valores ajustados)
+  - stays_in_week_nights: [0, 50] → [0, 14] (198 valores ajustados)
+  - adr: [-6.38, 5400] → [0, 1000] (2 valores ajustados -  1 valores negativos→0, 1 valores >1000→1000)
+  - children: [0, 10] → [0, 3] (1 valores ajustados)
+  - babies: [0, 10] → [0, 2] (2 valores ajustados)
+
+• Correcciones de inconsistencias lógicas:
+  - Reservas con estancia de 0 días:  651  (antes) →  0  (después)
+  - Reservas sin adultos:  385  (antes) →  0  (después)
 
 --- ANÁLISIS POR TIPO DE HOTEL ---
 
 Distribución de reservas por tipo de hotel:
     Tipo_Hotel Cantidad Porcentaje
-1   City Hotel    79330      66.45
-2 Resort Hotel    40060      33.55
+1   City Hotel    53428      61.13
+2 Resort Hotel    33968      38.87
 
 Distribución de reservas completadas (no canceladas) por tipo de hotel:
     Tipo_Hotel Reservas_Completadas Porcentaje
-1   City Hotel                46228       61.5
-2 Resort Hotel                28938       38.5
+1   City Hotel                37379      58.98
+2 Resort Hotel                25992      41.02
 
 --- ANÁLISIS DE TENDENCIA DE DEMANDA ---
 
@@ -453,31 +452,31 @@ Datos de reservas por período (primeros 10 meses):
 
 Período    Total Reservas   Reservas Completadas   Tasa Cancelación (%)
 --------  ---------------  ---------------------  ---------------------
-2015-07              2776                   1517                   45.4
-2015-08              3889                   2291                   41.1
-2015-09              5114                   3020                   40.9
-2015-10              4957                   3225                   34.9
-2015-11              2340                   1854                   20.8
-2015-12              2920                   1947                   33.3
-2016-01              2248                   1691                   24.8
-2016-02              3891                   2554                   34.4
-2016-03              4824                   3347                   30.6
-2016-04              5428                   3367                   38.0
+2015-07              1674                   1162                   30.6
+2015-08              2453                   1882                   23.3
+2015-09              2839                   2273                   19.9
+2015-10              2700                   2260                   16.3
+2015-11              1665                   1422                   14.6
+2015-12              1982                   1610                   18.8
+2016-01              1849                   1548                   16.3
+2016-02              2806                   2278                   18.8
+2016-03              3831                   2945                   23.1
+2016-04              3770                   2756                   26.9
 
 Estadísticas de resumen:
-- Período con mayor cantidad de reservas: 2017-05 con 6313 reservas
-- Período con menor cantidad de reservas: 2016-01 con 2248 reservas
-- Tasa de cancelación promedio: 36.3 %
+- Período con mayor cantidad de reservas: 2017-05 con 4575 reservas
+- Período con menor cantidad de reservas: 2015-11 con 1665 reservas
+- Tasa de cancelación promedio: 26.3 %
 
-Tendencia general: AUMENTO del 77.4 % en reservas totales desde 2015-07 hasta 2017-08 
+Tendencia general: AUMENTO del 161.7 % en reservas totales desde 2015-07 hasta 2017-08 
 
 Reservas por año con porcentajes:
 # A tibble: 3 × 6
   arrival_date_year Total_Reservas Reservas_Completadas Reservas_Canceladas Porcentaje_Completadas
               <int>          <int>                <int>               <int>                  <dbl>
-1              2015          21996                13854                8142                   63  
-2              2016          56707                36370               20337                   64.1
-3              2017          40687                24942               15745                   61.3
+1              2015          13313                10609                2704                   79.7
+2              2016          42391                31183               11208                   73.6
+3              2017          31692                21579               10113                   68.1
 # ℹ 1 more variable: Porcentaje_Canceladas <dbl>
 
 --- ANÁLISIS DE TEMPORADAS ---
@@ -486,35 +485,35 @@ Reservas por mes:
 # A tibble: 12 × 4
    arrival_date_month Total_Reservas Reservas_Completadas Tasa_Cancelacion
    <fct>                       <int>                <int>            <dbl>
- 1 January                      5929                 4122             30.5
- 2 February                     8068                 5372             33.4
- 3 March                        9794                 6645             32.2
- 4 April                       11089                 6565             40.8
- 5 May                         11791                 7114             39.7
- 6 June                        10939                 6404             41.5
- 7 July                        12661                 7919             37.4
- 8 August                      13877                 8638             37.8
- 9 September                   10508                 6392             39.2
-10 October                     11160                 6914             38.0
-11 November                     6794                 4672             31.2
-12 December                     6780                 4409             35.0
+ 1 January                      4693                 3655             22.1
+ 2 February                     6098                 4683             23.2
+ 3 March                        7513                 5683             24.4
+ 4 April                        7908                 5499             30.5
+ 5 May                          8355                 5913             29.2
+ 6 June                         7765                 5411             30.3
+ 7 July                        10057                 6859             31.8
+ 8 August                      11257                 7634             32.2
+ 9 September                    6690                 5048             24.5
+10 October                      6934                 5292             23.7
+11 November                     4995                 3941             21.1
+12 December                     5131                 3753             26.9
 
 Clasificación de temporadas por mes:
 # A tibble: 12 × 3
    arrival_date_month Total_Reservas Temporada
    <fct>                       <int> <chr>    
- 1 January                      5929 Baja     
- 2 February                     8068 Baja     
- 3 March                        9794 Media    
- 4 April                       11089 Media    
- 5 May                         11791 Alta     
- 6 June                        10939 Media    
- 7 July                        12661 Alta     
- 8 August                      13877 Alta     
- 9 September                   10508 Media    
-10 October                     11160 Media    
-11 November                     6794 Baja     
-12 December                     6780 Baja     
+ 1 January                      4693 Baja     
+ 2 February                     6098 Baja     
+ 3 March                        7513 Media    
+ 4 April                        7908 Media    
+ 5 May                          8355 Alta     
+ 6 June                         7765 Media    
+ 7 July                        10057 Alta     
+ 8 August                      11257 Alta     
+ 9 September                    6690 Media    
+10 October                      6934 Media    
+11 November                     4995 Baja     
+12 December                     5131 Baja     
 
 --- ANÁLISIS DE PERÍODOS DE BAJA DEMANDA ---
 
@@ -522,26 +521,26 @@ Meses con menor demanda de reservas:
 # A tibble: 4 × 5
   arrival_date_month Total_Reservas Reservas_Completadas Tasa_Cancelacion Temporada
   <fct>                       <int>                <int>            <dbl> <chr>    
-1 January                      5929                 4122             30.5 Baja     
-2 December                     6780                 4409             35.0 Baja     
-3 November                     6794                 4672             31.2 Baja     
-4 February                     8068                 5372             33.4 Baja     
+1 January                      4693                 3655             22.1 Baja     
+2 November                     4995                 3941             21.1 Baja     
+3 December                     5131                 3753             26.9 Baja     
+4 February                     6098                 4683             23.2 Baja     
 
 Combinaciones de mes y día con menor demanda (10 primeros):
 # A tibble: 10 × 3
 # Groups:   arrival_date_month [4]
    arrival_date_month arrival_date_day_of_month Total_Reservas
    <fct>                                  <int>          <int>
- 1 December                                  11             89
- 2 February                                  29             96
- 3 December                                  13             96
- 4 January                                   11            101
- 5 January                                   17            106
- 6 January                                   31            107
- 7 December                                  18            110
- 8 November                                  22            115
- 9 December                                  14            116
-10 December                                  20            116
+ 1 February                                  29             66
+ 2 December                                  11             76
+ 3 December                                  13             91
+ 4 January                                   11             95
+ 5 November                                  29             97
+ 6 December                                  18             97
+ 7 December                                  15             98
+ 8 January                                   17            100
+ 9 November                                  30            100
+10 January                                   31            104
 
 --- ANÁLISIS DE PERÍODOS DE ALTA DEMANDA ---
 
@@ -549,67 +548,67 @@ Meses con mayor demanda de reservas:
 # A tibble: 3 × 5
   arrival_date_month Total_Reservas Reservas_Completadas Tasa_Cancelacion Temporada
   <fct>                       <int>                <int>            <dbl> <chr>    
-1 August                      13877                 8638             37.8 Alta     
-2 July                        12661                 7919             37.4 Alta     
-3 May                         11791                 7114             39.7 Alta     
+1 August                      11257                 7634             32.2 Alta     
+2 July                        10057                 6859             31.8 Alta     
+3 May                          8355                 5913             29.2 Alta     
 
 Combinaciones de mes y día con mayor demanda (10 primeros):
 # A tibble: 10 × 3
-# Groups:   arrival_date_month [6]
+# Groups:   arrival_date_month [2]
    arrival_date_month arrival_date_day_of_month Total_Reservas
    <fct>                                  <int>          <int>
- 1 October                                   16            637
- 2 August                                    14            632
- 3 April                                     29            596
- 4 December                                   5            590
- 5 May                                       19            580
- 6 June                                      17            560
- 7 August                                     8            555
- 8 April                                     28            553
- 9 June                                       8            537
-10 May                                        5            531
+ 1 August                                     1            455
+ 2 August                                    17            436
+ 3 April                                     29            431
+ 4 August                                     8            424
+ 5 August                                    15            416
+ 6 August                                    16            405
+ 7 August                                     7            399
+ 8 August                                    20            396
+ 9 August                                    13            390
+10 August                                    28            388
 
 --- COMPARATIVA DE MESES DE MAYOR Y MENOR DEMANDA ---
 
-Mes con MAYOR demanda: 8 con 13877 reservas
-Mes con MENOR demanda: 1 con 5929 reservas
+Mes con MAYOR demanda: 8 con 11257 reservas
+Mes con MENOR demanda: 1 con 4693 reservas
 
 --- ANÁLISIS DE RESERVAS CON NIÑOS Y/O BEBÉS ---
 
 Análisis de reservas con menores:
-- Reservas con niños: 8590 ( 7.19 %)
-- Reservas con bebés: 917 ( 0.77 %)
-- Reservas con niños y/o bebés: 9332 ( 7.82 %)
-- Total de reservas: 119390 
+- Reservas con niños: 8364 ( 9.57 %)
+- Reservas con bebés: 914 ( 1.05 %)
+- Reservas con niños y/o bebés: 9103 ( 10.42 %)
+- Total de reservas: 87396 
 
 Reservas con menores por tipo de hotel:
 # A tibble: 2 × 6
   hotel        Total_Reservas Con_Ninos Con_Bebes Con_Menores Porcentaje_Menores
   <chr>                 <int>     <int>     <int>       <int>              <dbl>
-1 City Hotel            79330      5106       369        5403               6.81
-2 Resort Hotel          40060      3484       548        3929               9.81
+1 City Hotel            53428      4937       369        5234                9.8
+2 Resort Hotel          33968      3427       545        3869               11.4
 
 --- ANÁLISIS DE ESPACIOS DE ESTACIONAMIENTO ---
 
 Análisis de necesidad de estacionamiento:
-- Reservas que requieren estacionamiento: 7416 ( 6.21 %)
-- Reservas sin requerimiento de estacionamiento: 111974 ( 93.79 %)
+- Reservas que requieren estacionamiento: 7313 ( 8.37 %)
+- Reservas sin requerimiento de estacionamiento: 80083 ( 91.63 %)
 
 Necesidad de estacionamiento por tipo de hotel:
 # A tibble: 2 × 4
   hotel        Total_Reservas Requiere_Estacionamiento Porcentaje_Estacionamiento
   <chr>                 <int>                    <int>                      <dbl>
-1 City Hotel            79330                     1926                       2.43
-2 Resort Hotel          40060                     5490                      13.7 
+1 City Hotel            53428                     1896                       3.55
+2 Resort Hotel          33968                     5417                      16.0 
 
 Necesidad de estacionamiento por tipo de cliente:
 # A tibble: 4 × 4
   customer_type   Total_Reservas Requiere_Estacionamiento Porcentaje_Estacionamiento
   <chr>                    <int>                    <int>                      <dbl>
-1 Group                      577                       51                       8.84
-2 Transient                89613                     6420                       7.16
-3 Contract                  4076                      134                       3.29
-4 Transient-Party          25124                      811                       3.23
+1 Group                      544                       51                       9.38
+2 Transient                71986                     6368                       8.85
+3 Transient-Party          11727                      763                       6.51
+4 Contract                  3139                      131                       4.17
 
 --- ANÁLISIS DE CANCELACIONES POR MES ---
 
@@ -617,59 +616,59 @@ Cancelaciones por mes:
 # A tibble: 12 × 4
    arrival_date_month Total_Reservas Canceladas Tasa_Cancelacion
    <fct>                       <int>      <int>            <dbl>
- 1 January                      5929       1807             30.5
- 2 February                     8068       2696             33.4
- 3 March                        9794       3149             32.2
- 4 April                       11089       4524             40.8
- 5 May                         11791       4677             39.7
- 6 June                        10939       4535             41.5
- 7 July                        12661       4742             37.4
- 8 August                      13877       5239             37.8
- 9 September                   10508       4116             39.2
-10 October                     11160       4246             38.0
-11 November                     6794       2122             31.2
-12 December                     6780       2371             35.0
+ 1 January                      4693       1038             22.1
+ 2 February                     6098       1415             23.2
+ 3 March                        7513       1830             24.4
+ 4 April                        7908       2409             30.5
+ 5 May                          8355       2442             29.2
+ 6 June                         7765       2354             30.3
+ 7 July                        10057       3198             31.8
+ 8 August                      11257       3623             32.2
+ 9 September                    6690       1642             24.5
+10 October                      6934       1642             23.7
+11 November                     4995       1054             21.1
+12 December                     5131       1378             26.9
 
 Tasas de cancelación por hotel y mes (primeras filas):
 # A tibble: 10 × 5
 # Groups:   hotel [1]
    hotel      arrival_date_month Total_Reservas Canceladas Tasa_Cancelacion
    <chr>      <fct>                       <int>      <int>            <dbl>
- 1 City Hotel January                      3736       1482             39.7
- 2 City Hotel February                     4965       1901             38.3
- 3 City Hotel March                        6458       2386             37.0
- 4 City Hotel April                        7480       3465             46.3
- 5 City Hotel May                          8232       3653             44.4
- 6 City Hotel June                         7894       3528             44.7
- 7 City Hotel July                         8088       3306             40.9
- 8 City Hotel August                       8983       3602             40.1
- 9 City Hotel September                    7400       3110             42.0
-10 City Hotel October                      7605       3268             43.0
+ 1 City Hotel January                      2730        764             28.0
+ 2 City Hotel February                     3605        975             27.0
+ 3 City Hotel March                        4856       1365             28.1
+ 4 City Hotel April                        5080       1750             34.4
+ 5 City Hotel May                          5413       1746             32.3
+ 6 City Hotel June                         5005       1521             30.4
+ 7 City Hotel July                         5744       1898             33.0
+ 8 City Hotel August                       6591       2110             32.0
+ 9 City Hotel September                    4240       1067             25.2
+10 City Hotel October                      4208       1127             26.8
 
 --- ANÁLISIS ADICIONAL: RELACIONES ENTRE VARIABLES ---
 
 Relación entre tiempo de anticipación (lead_time) y cancelación:
 # A tibble: 2 × 4
   is_canceled Promedio_Lead_Time Mediana_Lead_Time Count
-        <int>              <dbl>             <dbl> <int>
-1           0               79.2                45 75166
-2           1              141.                113 44224
+        <int>              <dbl>             <int> <int>
+1           0               69.8                38 63371
+2           1              105.                 80 24025
 
 Duración promedio de estancia por tipo de hotel:
 # A tibble: 2 × 5
   hotel        Promedio_Noches Mediana_Noches Max_Noches Min_Noches
   <chr>                  <dbl>          <dbl>      <int>      <int>
-1 City Hotel              2.98              3         28          1
-2 Resort Hotel            4.31              3         28          1
+1 City Hotel              3.15              3         28          1
+2 Resort Hotel            4.38              4         28          1
 
 1. Análisis por tipo de hotel:
-   - El hotel tipo '1' tiene mayor cantidad de reservas (79330 reservas, 66.45%).
+   - El hotel tipo '1' tiene mayor cantidad de reservas (53428 reservas, 61.13%).
    - Para reservas completadas, el hotel tipo ' 1 ' sigue siendo el preferido.
 
 2. Tendencia de demanda:
-   - Comparando 2017 con 2016, hubo un cambio del -28.25% en el número total de reservas.
+   - Comparando 2017 con 2016, hubo un cambio del -25.24% en el número total de reservas.
    - La tendencia general indica que  está disminuyendo  la demanda con el tiempo.
-   - Tasa de cancelación en 2017: 38.7%, frente a 35.9% en 2016.
+   - Tasa de cancelación en 2017: 31.9%, frente a 26.4% en 2016.
 
 3. Temporadas de reserva:
    - Temporada ALTA:  May, July, August 
@@ -677,36 +676,34 @@ Duración promedio de estancia por tipo de hotel:
    - Temporada BAJA:  January, February, November, December 
 
 4. Períodos de menor demanda:
-   - El mes con MENOR demanda es:  1  con  5929  reservas.
-   - La combinación mes-día con MENOR demanda es:  12 - 11  con  89  reservas.
+   - El mes con MENOR demanda es:  1  con  4693  reservas.
+   - La combinación mes-día con MENOR demanda es:  2 - 29  con  66  reservas.
 
 5. Períodos de mayor demanda:
-   - El mes con MAYOR demanda es:  8  con  13877  reservas.
-   - La combinación mes-día con MAYOR demanda es:  10 - 16  con  637  reservas.
+   - El mes con MAYOR demanda es:  8  con  11257  reservas.
+   - La combinación mes-día con MAYOR demanda es:  8 - 1  con  455  reservas.
 
 6. Comparativa extremos de demanda:
-   - Diferencia entre el mes de mayor y menor demanda: 7948 reservas (134.05% más en temporada alta).
-   - El mes de máxima demanda (8) tiene 463 reservas diarias en promedio.
-   - El mes de mínima demanda (1) tiene 198 reservas diarias en promedio.
+   - Diferencia entre el mes de mayor y menor demanda: 6564 reservas (139.87% más en temporada alta).
+   - El mes de máxima demanda (8) tiene 375 reservas diarias en promedio.
+   - El mes de mínima demanda (1) tiene 156 reservas diarias en promedio.
 
 8. Análisis de reservas con niños y/o bebés:
-   - Un 7.82 % de las reservas incluyen niños y/o bebés ( 9332 reservas).
-   - El hotel tipo ' Resort Hotel ' tiene mayor porcentaje de reservas con menores ( 9.81 %).
+   - Un 10.42 % de las reservas incluyen niños y/o bebés ( 9103 reservas).
+   - El hotel tipo ' Resort Hotel ' tiene mayor porcentaje de reservas con menores ( 11.39 %).
 
 9. Importancia de espacios de estacionamiento:
-   - Solamente el 6.21 % de las reservas requieren espacios de estacionamiento.
-   - Por tipo de hotel, ' Resort Hotel ' tiene mayor demanda de estacionamiento ( 13.7 %).
-   - El tipo de cliente con mayor demanda de estacionamiento es ' Group ' con  8.84 % de reservas.
+   - Solamente el 8.37 % de las reservas requieren espacios de estacionamiento.
+   - Por tipo de hotel, ' Resort Hotel ' tiene mayor demanda de estacionamiento ( 15.95 %).
+   - El tipo de cliente con mayor demanda de estacionamiento es ' Group ' con  9.38 % de reservas.
 
 10. Meses con más cancelaciones:
-   - El mes con mayor tasa de cancelación es ' 6 ' ( 41.46 %).
-   - El mes con mayor cantidad absoluta de cancelaciones es ' 8 ' ( 5239  reservas canceladas).
+   - El mes con mayor tasa de cancelación es ' 8 ' ( 32.18 %).
+   - El mes con mayor cantidad absoluta de cancelaciones es ' 8 ' ( 3623  reservas canceladas).
 
 4. Hallazgos adicionales:
-   - Las reservas que terminan canceladas tienen un tiempo de anticipación (lead_time) promedio de  140.7794  días, mientras que las no canceladas tienen  79.21864  días en promedio.
-   - La duración promedio de estancia en el hotel tipo ' City Hotel ' es de  2.98  noches, y en ' Resort Hotel ' es de  4.31  noches.
-
-=== RONDA 6: VISUALIZACIONES Y CONCLUSIONES FINALES ===
+   - Las reservas que terminan canceladas tienen un tiempo de anticipación (lead_time) promedio de  104.9038  días, mientras que las no canceladas tienen  69.7867  días en promedio.
+   - La duración promedio de estancia en el hotel tipo ' City Hotel ' es de  3.15  noches, y en ' Resort Hotel ' es de  4.38  noches.
 
 --- VISUALIZACIONES CONSOLIDADAS ---
 Creando visualización: Demanda por tipo de hotel...
@@ -718,7 +715,7 @@ TableGrob (3 x 1) "arrange": 3 grobs
   z     cells    name                  grob
 1 1 (2-2,1-1) arrange        gtable[layout]
 2 2 (3-3,1-1) arrange        gtable[layout]
-3 3 (1-1,1-1) arrange text[GRID.text.17567]
+3 3 (1-1,1-1) arrange text[GRID.text.65510]
 
 --- TABLAS RESUMEN ---
 
@@ -726,45 +723,46 @@ Top 5 meses con mayor demanda:
 # A tibble: 5 × 2
   arrival_date_month Total_Reservas
   <fct>                       <int>
-1 August                      13877
-2 July                        12661
-3 May                         11791
-4 October                     11160
-5 April                       11089
+1 August                      11257
+2 July                        10057
+3 May                          8355
+4 April                        7908
+5 June                         7765
 
 Top 5 meses con mayor tasa de cancelación:
 # A tibble: 5 × 4
   arrival_date_month Total_Reservas Canceladas Tasa_Cancelacion
   <fct>                       <int>      <int>            <dbl>
-1 June                        10939       4535             41.5
-2 April                       11089       4524             40.8
-3 May                         11791       4677             39.7
-4 September                   10508       4116             39.2
-5 October                     11160       4246             38.0
+1 August                      11257       3623             32.2
+2 July                        10057       3198             31.8
+3 April                        7908       2409             30.5
+4 June                         7765       2354             30.3
+5 May                          8355       2442             29.2
 
 Comparación entre tipos de hotel:
 # A tibble: 2 × 9
-  hotel        Total_Reservas Porcentaje_del_Total Tasa_Cancelacion Promedio_Lead_Time Promedio_Estancia
-  <chr>                 <int>                <dbl>            <dbl>              <dbl>             <dbl>
-1 City Hotel            79330                 66.4             41.7              107                2.98
-2 Resort Hotel          40060                 33.6             27.8               92.2              4.31
-# ℹ 3 more variables: Porcentaje_Con_Niños <dbl>, Porcentaje_Con_Estacionamiento <dbl>, ADR_Promedio <dbl>
+  hotel   Total_Reservas Porcentaje_del_Total Tasa_Cancelacion Promedio_Lead_Time
+  <chr>            <int>                <dbl>            <dbl>              <dbl>
+1 City H…          53428                 61.1             30.0               77.1
+2 Resort…          33968                 38.9             23.5               83.1
+# ℹ 4 more variables: Promedio_Estancia <dbl>, Porcentaje_Con_Niños <dbl>,
+#   Porcentaje_Con_Estacionamiento <dbl>, ADR_Promedio <dbl>
 
 Relación entre tiempo de anticipación (lead_time) y tasa de cancelación:
 # A tibble: 5 × 4
   lead_time_cat   Total_Reservas Canceladas Tasa_Cancelacion
   <fct>                    <int>      <int>            <dbl>
-1 0-7 días                 19746       1902             9.63
-2 8-30 días                18960       5283            27.9 
-3 31-90 días               29553      11141            37.7 
-4 91-180 días              26439      11821            44.7 
-5 Más de 180 días          24692      14077            57.0 
+1 0-7 días                 18304       1543             8.43
+2 8-30 días                16340       4145            25.4 
+3 31-90 días               22744       7280            32.0 
+4 91-180 días              18243       6382            35.0 
+5 Más de 180 días          11765       4675            39.7 
 
 --- CONCLUSIONES GENERALES ---
 
 1. Demanda por tipo de hotel:
-   - El City Hotel representa el 66.45 % del total de reservas, frente al 33.55 % del Resort Hotel, lo que indica una clara preferencia por hoteles urbanos.
-   - Sin embargo, la tasa de cancelación del City Hotel ( 41.73 %) es significativamente mayor que la del Resort Hotel ( 27.76 %), lo que puede afectar a la rentabilidad real.
+   - El City Hotel representa el 61.13 % del total de reservas, frente al 38.87 % del Resort Hotel, lo que indica una clara preferencia por hoteles urbanos.
+   - Sin embargo, la tasa de cancelación del City Hotel ( 30.04 %) es significativamente mayor que la del Resort Hotel ( 23.48 %), lo que puede afectar a la rentabilidad real.
 
 2. Tendencia de demanda:
    - La demanda muestra claras fluctuaciones estacionales con picos en los meses de verano.
@@ -777,17 +775,17 @@ Relación entre tiempo de anticipación (lead_time) y tasa de cancelación:
    - Esta marcada estacionalidad sugiere oportunidades para estrategias de precios dinámicos y promociones.
 
 4. Reservas con niños y/o bebés:
-   - Solo el 7.82 % de las reservas totales incluyen niños y/o bebés.
-   - El Resort Hotel tiene un porcentaje mayor de reservas con niños ( 8.7 %) en comparación con el City Hotel ( 6.44 %), lo que sugiere que es más atractivo para familias.
+   - Solo el 10.42 % de las reservas totales incluyen niños y/o bebés.
+   - El Resort Hotel tiene un porcentaje mayor de reservas con niños ( 10.09 %) en comparación con el City Hotel ( 9.24 %), lo que sugiere que es más atractivo para familias.
 
 5. Espacios de estacionamiento:
-   - La demanda de espacios de estacionamiento es baja en general, con solo un  6.21 % del total de reservas.
-   - El Resort Hotel tiene mayor demanda de estacionamiento ( 13.7 %) que el City Hotel ( 2.43 %), posiblemente debido a su ubicación más alejada del centro urbano.
+   - La demanda de espacios de estacionamiento es baja en general, con solo un  8.37 % del total de reservas.
+   - El Resort Hotel tiene mayor demanda de estacionamiento ( 15.95 %) que el City Hotel ( 3.55 %), posiblemente debido a su ubicación más alejada del centro urbano.
 
 6. Cancelaciones:
-   - La tasa global de cancelación es del 37.04 %.
-   - Los meses con mayor tasa de cancelación son:  June, April, May .
-   - Existe una clara correlación entre el tiempo de anticipación (lead_time) y la probabilidad de cancelación:  reservas hechas con más de 180 días de anticipación tienen una tasa de cancelación del  57.01 %, mientras que las realizadas con menos de 7 días tienen solo un  9.63 %.
+   - La tasa global de cancelación es del 27.49 %.
+   - Los meses con mayor tasa de cancelación son:  August, July, April .
+   - Existe una clara correlación entre el tiempo de anticipación (lead_time) y la probabilidad de cancelación:  reservas hechas con más de 180 días de anticipación tienen una tasa de cancelación del  39.74 %, mientras que las realizadas con menos de 7 días tienen solo un  8.43 %.
 
 --- RECOMENDACIONES ESTRATÉGICAS ---
 
@@ -797,17 +795,17 @@ Relación entre tiempo de anticipación (lead_time) y tasa de cancelación:
    - Para el City Hotel, enfocarse en mejorar la tasa de conversión y reducir cancelaciones, que actualmente son más altas que en el Resort Hotel.
 
 2. Segmentación de clientes:
-   - Resort Hotel: Desarrollar más servicios y amenidades orientados a familias con niños, dado su mayor porcentaje de este tipo de reservas ( 8.7 %).
+   - Resort Hotel: Desarrollar más servicios y amenidades orientados a familias con niños, dado su mayor porcentaje de este tipo de reservas ( 10.09 %).
    - City Hotel: Enfocarse en el segmento de viajeros individuales y parejas sin niños, que constituyen la gran mayoría de su clientela.
-   - Dado que solo el 6.21 % de reservas requieren estacionamiento, considerar reducir espacios de estacionamiento o reutilizarlos para otras amenidades, especialmente en el City Hotel.
+   - Dado que solo el 8.37 % de reservas requieren estacionamiento, considerar reducir espacios de estacionamiento o reutilizarlos para otras amenidades, especialmente en el City Hotel.
 
 3. Gestión de cancelaciones:
-   - Implementar políticas escalonadas de depósito basadas en el tiempo de anticipación, con mayores garantías para reservas con más de 90 días de antelación, que tienen tasas de cancelación del  44.71 % o superiores.
-   - Desarrollar estrategias específicas de retención para los meses con mayor tasa de cancelación ( June, April, May ), como recordatorios personalizados, confirmación proactiva, o incentivos para mantener la reserva.
+   - Implementar políticas escalonadas de depósito basadas en el tiempo de anticipación, con mayores garantías para reservas con más de 90 días de antelación, que tienen tasas de cancelación del  34.98 % o superiores.
+   - Desarrollar estrategias específicas de retención para los meses con mayor tasa de cancelación ( August, July, April ), como recordatorios personalizados, confirmación proactiva, o incentivos para mantener la reserva.
    - Considerar implementar un sistema de overbooking inteligente basado en patrones históricos de cancelación por temporada, tipo de cliente y tiempo de anticipación.
 
 4. Desarrollo de productos y servicios:
-   - Dado que la estancia promedio es relativamente corta ( 3.42  noches), desarrollar paquetes que incentiven estancias más largas, especialmente en temporada baja.
+   - Dado que la estancia promedio es relativamente corta ( 3.63  noches), desarrollar paquetes que incentiven estancias más largas, especialmente en temporada baja.
    - Para el Resort Hotel, continuar desarrollando instalaciones atractivas para familias con niños, que constituyen un segmento importante.
    - Para el City Hotel, enfocarse en comodidades y servicios que atraigan a viajeros de negocios y turistas urbanos sin niños.
 
@@ -815,14 +813,14 @@ Relación entre tiempo de anticipación (lead_time) y tasa de cancelación:
 Dataset final guardado en: D:/@aleec02/CC216-TP-2025-1/data/hotel_bookings_final.csv 
 
 Estructura del dataset final:
-'data.frame':	119390 obs. of  8 variables:
+'data.frame':	87396 obs. of  8 variables:
  $ hotel              : chr  "Resort Hotel" "Resort Hotel" "Resort Hotel" "Resort Hotel" ...
- $ is_canceled        : int  0 0 0 0 0 0 0 0 1 1 ...
- $ lead_time          : int  342 365 7 13 14 14 0 9 85 75 ...
- $ lead_time_categoria: Factor w/ 5 levels "0-7 días","8-30 días",..: 5 5 1 2 2 2 1 2 3 3 ...
+ $ is_canceled        : int  0 0 0 0 0 0 0 1 1 1 ...
+ $ lead_time          : int  342 365 7 13 14 0 9 85 75 23 ...
+ $ lead_time_categoria: Factor w/ 5 levels "0-7 días","8-30 días",..: 5 5 1 2 2 1 2 3 3 2 ...
  $ arrival_date_month : Factor w/ 12 levels "January","February",..: 7 7 7 7 7 7 7 7 7 7 ...
  $ Temporada          : chr  "Alta" "Alta" "Alta" "Alta" ...
- $ total_nights       : int  1 1 1 1 2 2 2 2 3 3 ...
+ $ total_nights       : int  1 1 1 1 2 2 2 3 3 4 ...
  $ tipo_familia       : chr  "Sin menores" "Sin menores" "Sin menores" "Sin menores" ...
 
 --- RESUMEN DE ARCHIVOS GENERADOS ---
