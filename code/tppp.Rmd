@@ -1,19 +1,73 @@
-sink("resultados.txt")
+---
+title: "TP-output"
+output:
+  pdf_document:
+    latex_engine: xelatex
+date: "2025-05-14"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
 
 
+
+```{r chunk1}
 #####################################################
 # PARTE 01: CONFIGURACIÓN INICIAL Y CARGA DE DATOS
 #####################################################
-
 ## PROJECT WD
-if (exists(".rs.getProjectDirectory")) {
+# Determinar el directorio del proyecto correctamente
+if (exists(".rs.getProjectDirectory") && 
+    is.function(get(".rs.getProjectDirectory"))) {
+  # Si estamos en RStudio, usar la función de RStudio
   project_dir <- .rs.getProjectDirectory()
-  print(paste("Directorio del proyecto:", project_dir))
+  print(paste("Directorio del proyecto (RStudio):", project_dir))
 } else {
-  # Alternativa si no estamos en RStudio
-  project_dir <- getwd()
-  print(paste("Directorio actual (no RStudio):", project_dir))
+  # Si no estamos en RStudio o la función no existe
+  current_dir <- getwd()
+  
+  # Verificar si estamos dentro de la carpeta 'code'
+  if (basename(current_dir) == "code") {
+    # Subir un nivel para llegar a la raíz del proyecto
+    project_dir <- dirname(current_dir)
+    print(paste("Detectada ejecución desde carpeta 'code', subiendo un nivel:", project_dir))
+  } else {
+    # Asumir que estamos en la raíz del proyecto
+    project_dir <- current_dir
+    print(paste("Directorio actual (asumido como raíz del proyecto):", project_dir))
+  }
 }
+
+# Definir las rutas de los directorios (SIEMPRE relativas a la raíz del proyecto)
+data_dir <- file.path(project_dir, "data")
+code_dir <- file.path(project_dir, "code")
+
+# Verificar que las rutas existen
+if (!dir.exists(data_dir)) {
+  stop(paste("El directorio de datos no existe:", data_dir))
+}
+if (!dir.exists(code_dir)) {
+  stop(paste("El directorio de código no existe:", code_dir))
+}
+
+# Mostrar la información de directorios
+cat("Directorio del proyecto:", project_dir, "\n")
+cat("Directorio de datos:", data_dir, "\n")
+cat("Directorio de código:", code_dir, "\n")
+
+# Ruta al archivo CSV (relativa a la raíz del proyecto)
+CSV_original <- file.path(data_dir, "hotel_bookings.csv")
+if (!file.exists(CSV_original)) {
+  stop(paste("El archivo CSV no existe:", CSV_original, "\nVerificar ruta completa."))
+}
+
+
+
+
+
 
 ## LIBRARIES
 if (!require("tidyverse", quietly = TRUE)) install.packages("tidyverse")
@@ -2034,5 +2088,7 @@ cat("- 7_lead_time_cancelacion.jpg: Relación entre tiempo de anticipación y ca
 cat(green("\n=== ANÁLISIS EXPLORATORIO COMPLETADO EXITOSAMENTE ===\n"))
 
 
-sink()
+```
+
+
 
