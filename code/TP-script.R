@@ -62,6 +62,9 @@ if (!file.exists(CSV_original)) {
 cat(green("Cargando datos desde:"), CSV_original, "\n")
 hotel_data <- read.csv(CSV_original, header = TRUE, stringsAsFactors = FALSE)
 
+# Eliminar duplicados
+hotel_data <- unique(hotel_data)
+
 # Inspección inicial
 cat(yellow("\n--- DIMENSIONES DEL DATASET ---\n"))
 print(dim(hotel_data))
