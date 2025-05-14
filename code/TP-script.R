@@ -1,3 +1,5 @@
+sink("resultados.txt")
+
 #####################################################
 # PARTE 01: CONFIGURACIÓN INICIAL Y CARGA DE DATOS
 #####################################################
@@ -1027,14 +1029,49 @@ ggsave(file.path(graphics_analysis_dir, "reservas_por_mes.jpg"),
 
 
 
-
-
 #------------------------------------------
-# EDA 04:  ¿CUÁNDO ES MENOR LA DEMANDA DE RESERVAS?
+# EDA 04: ¿CUÁNDO ES MENOR LA DEMANDA DE RESERVAS?
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE PERÍODOS DE BAJA DEMANDA ---\n"))
 
-# Ya identificamos los meses de baja demanda en el análisis anterior
+# Asegurarse de que arrival_date_month está como factor con el orden correcto
+if (!is.factor(hotel_data_limpio$arrival_date_month)) {
+  hotel_data_limpio$arrival_date_month <- factor(
+    hotel_data_limpio$arrival_date_month,
+    levels = c("January", "February", "March", "April", "May", "June", 
+               "July", "August", "September", "October", "November", "December")
+  )
+}
+
+# Recalcular reservas por mes si es necesario
+if (!exists("reservas_por_mes") || !"Temporada" %in% colnames(reservas_por_mes)) {
+  reservas_por_mes <- hotel_data_limpio %>%
+    group_by(arrival_date_month) %>%
+    summarise(
+      Total_Reservas = n(),
+      Reservas_Completadas = sum(is_canceled == 0),
+      Tasa_Cancelacion = round(sum(is_canceled) / n() * 100, 2)
+    ) %>%
+    arrange(match(arrival_date_month, levels(hotel_data_limpio$arrival_date_month)))
+  
+  # Añadir número de mes y temporada
+  reservas_por_mes$mes_num <- match(reservas_por_mes$arrival_date_month, month.name)
+  
+  # Clasificar en temporadas usando criterio estadístico
+  media_reservas <- mean(reservas_por_mes$Total_Reservas)
+  sd_reservas <- sd(reservas_por_mes$Total_Reservas)
+  reservas_por_mes$Temporada <- case_when(
+    reservas_por_mes$Total_Reservas >= (media_reservas + 0.5 * sd_reservas) ~ "Alta",
+    reservas_por_mes$Total_Reservas <= (media_reservas - 0.5 * sd_reservas) ~ "Baja",
+    TRUE ~ "Media"
+  )
+}
+
+# Mostrar todos los meses ordenados por volumen ascendente
+cat("\nReservas por mes (ordenados de menor a mayor):\n")
+print(reservas_por_mes %>% arrange(Total_Reservas))
+
+# Identificar específicamente los meses de baja demanda
 meses_baja_demanda <- reservas_por_mes %>%
   filter(Temporada == "Baja") %>%
   arrange(Total_Reservas)
@@ -1042,45 +1079,95 @@ meses_baja_demanda <- reservas_por_mes %>%
 cat("\nMeses con menor demanda de reservas:\n")
 print(meses_baja_demanda)
 
-# Análisis por combinación de mes y día del mes
+# Visualización de meses de baja demanda
+plot_baja_demanda_meses <- ggplot(meses_baja_demanda, 
+                                  aes(x = reorder(arrival_date_month, Total_Reservas), 
+                                      y = Total_Reservas, 
+                                      fill = Total_Reservas)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = Total_Reservas), vjust = -0.5, size = 4) +
+  labs(title = "Meses con menor demanda de reservas",
+       subtitle = "Temporada baja hotelera",
+       x = "Mes",
+       y = "Cantidad de reservas") +
+  coord_flip() +
+  scale_fill_gradient(low = "#e74c3c", high = "#f39c12") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    plot.subtitle = element_text(hjust = 0.5, size = 12),
+    axis.text = element_text(size = 10),
+    legend.position = "none"
+  )
+
+print(plot_baja_demanda_meses)
+ggsave(file.path(graphics_analysis_dir, "meses_baja_demanda.jpg"), 
+       plot_baja_demanda_meses, width = 8, height = 6, dpi = 300)
+
+# Análisis detallado por combinación de mes y día
 reservas_por_dia_mes <- hotel_data_limpio %>%
   group_by(arrival_date_month, arrival_date_day_of_month) %>%
-  summarise(Total_Reservas = n()) %>%
+  summarise(Total_Reservas = n(), .groups = 'drop') %>%
   arrange(Total_Reservas)
 
+# Calcular estadísticas para contextualizar
+promedio_diario_global <- round(mean(reservas_por_dia_mes$Total_Reservas))
+min_reservas_dia <- min(reservas_por_dia_mes$Total_Reservas)
+porcentaje_reduccion <- round((1 - min_reservas_dia/promedio_diario_global) * 100, 2)
+
+cat("\nEstadísticas de demanda diaria:\n")
+cat("- Promedio global de reservas por día:", promedio_diario_global, "\n")
+cat("- Mínimo de reservas en un día:", min_reservas_dia, "\n")
+cat("- Reducción porcentual:", porcentaje_reduccion, "% menos que el promedio\n")
+
 cat("\nCombinaciones de mes y día con menor demanda (10 primeros):\n")
-print(head(reservas_por_dia_mes, 10))
+dias_menor_demanda <- head(reservas_por_dia_mes, 10)
+print(dias_menor_demanda)
 
-# Visualizar los 10 días con menor demanda
-dias_menor_demanda <- reservas_por_dia_mes %>%
-  arrange(Total_Reservas) %>%
-  head(10)
-
+# Crear etiquetas más descriptivas para la visualización
 dias_menor_demanda$Fecha <- paste(dias_menor_demanda$arrival_date_month, 
                                   dias_menor_demanda$arrival_date_day_of_month)
 
-# Gráfico con el menor valor arriba
+# Visualización mejorada de los 10 días con menor demanda
 plot_menor_demanda <- ggplot(dias_menor_demanda, 
                              aes(x = reorder(Fecha, Total_Reservas), 
                                  y = Total_Reservas, 
                                  fill = Total_Reservas)) +
   geom_bar(stat = "identity") +
-  geom_text(aes(label = Total_Reservas), hjust = -0.2) +
+  geom_text(aes(label = Total_Reservas), hjust = -0.5, size = 4) +
+  # Añadir línea de referencia para el promedio global
+  geom_hline(yintercept = promedio_diario_global, linetype = "dashed", 
+             color = "blue", size = 1) +
+  geom_text(aes(x = 5, y = promedio_diario_global + 5, 
+                label = paste("Promedio diario:", promedio_diario_global)), 
+            color = "blue", size = 3.5) +
   labs(title = "10 días con menor demanda de reservas",
-       subtitle = "Ordenados de menor a mayor",
+       subtitle = paste("El día de menor demanda tiene", 
+                        porcentaje_reduccion, "% menos reservas que el promedio diario"),
        x = "Fecha (Mes-Día)",
        y = "Cantidad de reservas") +
   coord_flip() +
   scale_fill_gradient(low = "#e74c3c", high = "#f39c12") +
   theme_minimal() +
-  theme(legend.position = "none")
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    plot.subtitle = element_text(hjust = 0.5, size = 12),
+    axis.text = element_text(size = 10),
+    legend.position = "none"
+  )
 
 print(plot_menor_demanda)
 
-# Guardar gráfica
 ggsave(file.path(graphics_analysis_dir, "dias_menor_demanda.jpg"), 
-       plot_menor_demanda, width = 8, height = 6, dpi = 300)
+       plot_menor_demanda, width = 9, height = 7, dpi = 300)
 
+# Análisis específico del día con menor demanda absoluta
+dia_menor_demanda <- reservas_por_dia_mes[1,]
+mes_de_dia_menor <- as.character(dia_menor_demanda$arrival_date_month)
+dia_del_mes_menor <- dia_menor_demanda$arrival_date_day_of_month
+
+cat("\nDía con MENOR demanda absoluta:", mes_de_dia_menor, dia_del_mes_menor, 
+    "con apenas", dia_menor_demanda$Total_Reservas, "reservas\n")
 
 
 
@@ -1090,7 +1177,40 @@ ggsave(file.path(graphics_analysis_dir, "dias_menor_demanda.jpg"),
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE PERÍODOS DE ALTA DEMANDA ---\n"))
 
-# Identificar meses de alta demanda
+# Asegurarse de que arrival_date_month está como factor con el orden correcto
+hotel_data_limpio$arrival_date_month <- factor(
+  hotel_data_limpio$arrival_date_month,
+  levels = c("January", "February", "March", "April", "May", "June", 
+             "July", "August", "September", "October", "November", "December")
+)
+
+# Recalcular reservas por mes para asegurar que tenemos los datos correctos
+reservas_por_mes <- hotel_data_limpio %>%
+  group_by(arrival_date_month) %>%
+  summarise(
+    Total_Reservas = n(),
+    Reservas_Completadas = sum(is_canceled == 0),
+    Tasa_Cancelacion = round(sum(is_canceled) / n() * 100, 2)
+  ) %>%
+  arrange(match(arrival_date_month, levels(hotel_data_limpio$arrival_date_month)))
+
+# Crear columna numérica para el número de mes (útil para ordenamiento)
+reservas_por_mes$mes_num <- match(reservas_por_mes$arrival_date_month, month.name)
+
+# Identificar meses de alta demanda basados en criterio estadístico
+media_reservas <- mean(reservas_por_mes$Total_Reservas)
+sd_reservas <- sd(reservas_por_mes$Total_Reservas)
+reservas_por_mes$Temporada <- case_when(
+  reservas_por_mes$Total_Reservas >= (media_reservas + 0.5 * sd_reservas) ~ "Alta",
+  reservas_por_mes$Total_Reservas <= (media_reservas - 0.5 * sd_reservas) ~ "Baja",
+  TRUE ~ "Media"
+)
+
+# Mostrar todos los meses ordenados por volumen de reservas (para verificación)
+cat("\nReservas por mes (ordenados por volumen):\n")
+print(reservas_por_mes %>% arrange(desc(Total_Reservas)))
+
+# Identificar específicamente los meses de alta demanda
 meses_alta_demanda <- reservas_por_mes %>%
   filter(Temporada == "Alta") %>%
   arrange(desc(Total_Reservas))
@@ -1098,15 +1218,17 @@ meses_alta_demanda <- reservas_por_mes %>%
 cat("\nMeses con mayor demanda de reservas:\n")
 print(meses_alta_demanda)
 
-# Análisis por combinación de mes y día del mes para alta demanda
-cat("\nCombinaciones de mes y día con mayor demanda (10 primeros):\n")
-dias_mayor_demanda <- reservas_por_dia_mes %>%
-  arrange(desc(Total_Reservas)) %>%
-  head(10)
+# Análisis de los días específicos con mayor demanda
+# (Primero asegúrate de que tienes los datos por día)
+reservas_por_dia_mes <- hotel_data_limpio %>%
+  group_by(arrival_date_month, arrival_date_day_of_month) %>%
+  summarise(Total_Reservas = n(), .groups = 'drop') %>%
+  arrange(desc(Total_Reservas))
 
+cat("\nCombinaciones de mes y día con mayor demanda (10 primeros):\n")
+dias_mayor_demanda <- head(reservas_por_dia_mes, 10)
 print(dias_mayor_demanda)
 
-# Crear etiqueta de fecha
 dias_mayor_demanda$Fecha <- paste(dias_mayor_demanda$arrival_date_month, 
                                   dias_mayor_demanda$arrival_date_day_of_month)
 
@@ -1122,20 +1244,21 @@ plot_mayor_demanda <- ggplot(dias_mayor_demanda,
        x = "Fecha (Mes-Día)",
        y = "Cantidad de reservas") +
   coord_flip() +
-  scale_fill_gradient(low = "#f39c12", high = "#2ecc71") +  # Invertimos colores: amarillo a verde
+  scale_fill_gradient(low = "#f39c12", high = "#2ecc71") +
   theme_minimal() +
   theme(legend.position = "none")
 
 print(plot_mayor_demanda)
 
-# Guardar gráfica
 ggsave(file.path(graphics_analysis_dir, "dias_mayor_demanda.jpg"), 
        plot_mayor_demanda, width = 8, height = 6, dpi = 300)
 
-# Comparativa de meses extremos (mayor y menor demanda)
+#------------------------------------------
+# COMPARATIVA DE MESES DE MAYOR Y MENOR DEMANDA
+#------------------------------------------
 cat(yellow("\n--- COMPARATIVA DE MESES DE MAYOR Y MENOR DEMANDA ---\n"))
 
-# Obtener el mes de mayor y menor demanda
+# Identificar explícitamente los meses con mayor y menor número de reservas
 mes_max_demanda <- reservas_por_mes %>% 
   arrange(desc(Total_Reservas)) %>% 
   slice(1)
@@ -1144,52 +1267,81 @@ mes_min_demanda <- reservas_por_mes %>%
   arrange(Total_Reservas) %>% 
   slice(1)
 
-cat("\nMes con MAYOR demanda:", mes_max_demanda$arrival_date_month, 
-    "con", mes_max_demanda$Total_Reservas, "reservas\n")
-cat("Mes con MENOR demanda:", mes_min_demanda$arrival_date_month, 
-    "con", mes_min_demanda$Total_Reservas, "reservas\n")
+# Calcular diferencia absoluta y porcentual
+diferencia_reservas <- mes_max_demanda$Total_Reservas - mes_min_demanda$Total_Reservas
+porcentaje_diferencia <- round((diferencia_reservas / mes_min_demanda$Total_Reservas) * 100, 2)
 
-# Crear dataframe para comparativa
+# Mostrar resultados detallados
+cat("\nMes con MAYOR demanda:", as.character(mes_max_demanda$arrival_date_month), 
+    "con", mes_max_demanda$Total_Reservas, "reservas\n")
+cat("Mes con MENOR demanda:", as.character(mes_min_demanda$arrival_date_month), 
+    "con", mes_min_demanda$Total_Reservas, "reservas\n")
+cat("Diferencia absoluta:", diferencia_reservas, "reservas\n")
+cat("Diferencia porcentual:", porcentaje_diferencia, "% más en temporada alta\n")
+
+# Calcular promedios diarios para mejor comparación
+dias_por_mes <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+nombres_meses <- month.name
+dias_mes_max <- dias_por_mes[mes_max_demanda$mes_num]
+dias_mes_min <- dias_por_mes[mes_min_demanda$mes_num]
+
+promedio_diario_max <- round(mes_max_demanda$Total_Reservas / dias_mes_max)
+promedio_diario_min <- round(mes_min_demanda$Total_Reservas / dias_mes_min)
+
+cat("El mes de máxima demanda tiene", promedio_diario_max, "reservas diarias en promedio.\n")
+cat("El mes de mínima demanda tiene", promedio_diario_min, "reservas diarias en promedio.\n")
+
+# Crear dataframe para visualización comparativa
 meses_extremos <- rbind(
   mes_max_demanda %>% mutate(Tipo = "Mayor demanda"),
   mes_min_demanda %>% mutate(Tipo = "Menor demanda")
 )
 
-# Visualizar comparativa
+# Visualizar comparativa con detalle numérico
 plot_meses_extremos <- ggplot(meses_extremos, 
                               aes(x = arrival_date_month, y = Total_Reservas, fill = Tipo)) +
-  geom_bar(stat = "identity", position = "dodge") +
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
   geom_text(aes(label = Total_Reservas), 
-            position = position_dodge(width = 0.9), vjust = -0.5) +
+            position = position_dodge(width = 0.7), vjust = -0.5, size = 5) +
   labs(title = "Comparativa entre meses de mayor y menor demanda",
+       subtitle = paste("Diferencia:", diferencia_reservas, "reservas", 
+                        "(", porcentaje_diferencia, "% más en temporada alta)"),
        x = "Mes",
        y = "Cantidad de reservas",
        fill = "") +
   scale_fill_manual(values = c("Mayor demanda" = "#2ecc71", "Menor demanda" = "#e74c3c")) +
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    plot.subtitle = element_text(hjust = 0.5, size = 12),
+    axis.text.x = element_text(size = 12),
+    axis.title = element_text(size = 14)
+  )
 
 print(plot_meses_extremos)
 
-# Guardar gráfica
 ggsave(file.path(graphics_analysis_dir, "comparativa_meses_extremos.jpg"), 
-       plot_meses_extremos, width = 8, height = 6, dpi = 300)
+       plot_meses_extremos, width = 10, height = 7, dpi = 300)
 
+plot_todos_meses <- ggplot(reservas_por_mes, aes(x = arrival_date_month, y = Total_Reservas, fill = Temporada)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = Total_Reservas), vjust = -0.5, size = 3.5) +
+  labs(title = "Distribución anual de la demanda hotelera",
+       subtitle = paste("Diferencia entre pico y valle:", diferencia_reservas, "reservas (",
+                        porcentaje_diferencia, "% más en temporada alta)"),
+       x = "Mes",
+       y = "Cantidad de reservas") +
+  scale_fill_manual(values = c("Alta" = "#2ecc71", "Media" = "#f39c12", "Baja" = "#e74c3c")) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    plot.subtitle = element_text(hjust = 0.5, size = 12),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10)
+  )
 
-
-
-
-# Verificar si necesitamos recargar el dataset limpio
-if (!exists("hotel_data_limpio") || !is.data.frame(hotel_data_limpio)) {
-  cat("Recargando dataset limpio...\n")
-  hotel_data_limpio <- read.csv(CSV_limpio, header = TRUE, stringsAsFactors = FALSE)
-}
-
-# Asegurar que el directorio para gráficas de análisis existe
-graphics_analysis_dir <- file.path(graphics_dir, "analisis")
-if (!dir.exists(graphics_analysis_dir)) {
-  dir.create(graphics_analysis_dir)
-  cat("Creado directorio para gráficas de análisis:", graphics_analysis_dir, "\n")
-}
+print(plot_todos_meses)
+ggsave(file.path(graphics_analysis_dir, "distribucion_anual_demanda.jpg"), 
+       plot_todos_meses, width = 12, height = 7, dpi = 300)
 
 
 
@@ -2167,4 +2319,5 @@ cat("- 6_comparacion_hoteles.jpg: Tabla comparativa entre tipos de hotel\n")
 cat("- 7_lead_time_cancelacion.jpg: Relación entre tiempo de anticipación y cancelación\n")
 
 cat(green("\n=== ANÁLISIS EXPLORATORIO COMPLETADO EXITOSAMENTE ===\n"))
+sink()
 
