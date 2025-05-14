@@ -146,8 +146,6 @@ cat("Dataset final (si es necesario):", CSV_final, "\n")
 # PARTE 02: ANÁLISIS DE DATOS FALTANTES Y ATÍPICOS
 #####################################################
 
-cat(green("\n=== RONDA 2: ANÁLISIS DE DATOS FALTANTES Y ATÍPICOS ===\n"))
-
 #------------------------------------------
 # 2.1. ANÁLISIS DE DATOS FALTANTES (NA)
 #------------------------------------------
@@ -335,8 +333,6 @@ cat("   - adr: Eliminar valores negativos y recortar valores extremadamente alto
 #####################################################
 # PARTE 03: PREPROCESAMIENTO DE DATOS
 #####################################################
-
-cat(green("\n=== RONDA 3: PREPROCESAMIENTO DE DATOS ===\n"))
 
 # Crear una copia para no modificar los datos originales
 hotel_data_limpio <- hotel_data

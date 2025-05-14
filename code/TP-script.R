@@ -1,4 +1,3 @@
-sink("resultados.txt")
 #####################################################
 # PARTE 01: CONFIGURACIÓN INICIAL Y CARGA DE DATOS
 #####################################################
@@ -79,7 +78,7 @@ CSV_final <- file.path(data_dir, "hotel_bookings_final.csv")
 
 cat(green("\nRutas para guardar datasets procesados:"), "\n")
 cat("Dataset limpio:", CSV_limpio, "\n")
-cat("Dataset final (si es necesario):", CSV_final, "\n")
+cat("Dataset final", CSV_final, "\n")
 
 
 
@@ -87,8 +86,6 @@ cat("Dataset final (si es necesario):", CSV_final, "\n")
 #####################################################
 # PARTE 02: ANÁLISIS DE DATOS FALTANTES Y ATÍPICOS
 #####################################################
-
-cat(green("\n=== RONDA 2: ANÁLISIS DE DATOS FALTANTES Y ATÍPICOS ===\n"))
 
 #------------------------------------------
 # 2.1. ANÁLISIS DE DATOS FALTANTES (NA)
@@ -277,8 +274,6 @@ cat("   - adr: Eliminar valores negativos y recortar valores extremadamente alto
 #####################################################
 # PARTE 03: PREPROCESAMIENTO DE DATOS
 #####################################################
-
-cat(green("\n=== RONDA 3: PREPROCESAMIENTO DE DATOS ===\n"))
 
 # Crear una copia para no modificar los datos originales
 hotel_data_limpio <- hotel_data
@@ -2172,6 +2167,4 @@ cat("- 6_comparacion_hoteles.jpg: Tabla comparativa entre tipos de hotel\n")
 cat("- 7_lead_time_cancelacion.jpg: Relación entre tiempo de anticipación y cancelación\n")
 
 cat(green("\n=== ANÁLISIS EXPLORATORIO COMPLETADO EXITOSAMENTE ===\n"))
-
-sink()
 
