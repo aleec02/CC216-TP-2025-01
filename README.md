@@ -2,7 +2,7 @@
 
 # Hotel Booking Demand Analysis
 
-![Hotel Image](media/image1.png)
+<img src="imgs/hotel.png" alt="Hotel Image" width="400"/>
 
 ## Resumen Ejecutivo
 
@@ -14,10 +14,10 @@ Nuestros hallazgos revelan marcadas diferencias entre el comportamiento de los c
 
 | Código      | Nombres y apellidos           | Responsabilidades principales |
 |-------------|-------------------------------|-------------------------------|
-| u202118038  | Conza Hualpa, Alexia Evelyn   | Preprocesamiento de datos, análisis de cancelaciones |
+| u202118038  | Conza Hualpa, Alexia Evelyn   | Metodología EDA, recomendaciones estratégicas |
 | u202311894  | Villanueva Aramburú, José Javier | Análisis de tendencias temporales, visualizaciones |
-| u20231e122  | Bravo Lévano, Eduardo Fernando | Metodología EDA, detección de outliers |
-| u202412543  | Caldas Zapata, Ernesto Yago   | Segmentación de clientes, recomendaciones estratégicas |
+| u20231e122  | Bravo Lévano, Eduardo Fernando | Preprocesamiento de datos, detección de outliers |
+| u202412543  | Caldas Zapata, Ernesto Yago   | Segmentación de clientes, análisis de cancelaciones  |
 
 ## Contexto del Proyecto
 
@@ -421,6 +421,8 @@ Reservas sin noches (0 días de estadía) después de corrección: 0
 ## Análisis Exploratorio y Hallazgos
 
 ### 1. Distribución de Reservas por Tipo de Hotel
+¿Cuántas reservas se realizan por tipo de hotel?
+![Demanda por tipo de hotel](data/graficas/final/1_demanda_hotel.jpg)
 
 ```R
 # Contar reservas por tipo de hotel
@@ -466,7 +468,8 @@ En cuanto a las reservas que efectivamente se completaron (no canceladas), la pr
 **Hallazgo clave**: Aunque el City Hotel genera más reservas, también exhibe una tasa de cancelación significativamente mayor (30.04%) en comparación con el Resort Hotel (23.48%), lo que sugiere diferencias importantes en el comportamiento del cliente según el tipo de alojamiento.
 
 ### 2. Evolución de la Demanda a lo Largo del Tiempo
-
+¿Está aumentando la demanda con el tiempo?
+![Tendencia de demanda](data/graficas/final/2_tendencia_demanda.jpg)
 ```R
 # Análisis por año con porcentajes
 reservas_por_anio <- hotel_data_limpio %>%
@@ -504,6 +507,8 @@ La evolución anual muestra patrones significativos:
 **Hallazgo clave**: Se observa una tendencia preocupante de aumento en la tasa de cancelación año tras año, pasando del 20.3% en 2015 al 31.9% en 2017, lo que representa un incremento del 57.1% en la proporción de reservas canceladas durante el período estudiado.
 
 ### 3. Identificación de Temporadas de Reserva
+¿Cuáles son las temporadas de reservas?
+![Temporadas de reserva](data/graficas/final/3_temporadas_reserva.jpg)
 
 ```R
 # Agregación por mes
@@ -577,6 +582,8 @@ Basándonos en el volumen mensual de reservas, hemos identificado tres temporada
 El mes con mayor demanda es **agosto** con 11,257 reservas, mientras que el mes con menor demanda es **enero** con apenas 4,693 reservas.
 
 ### 4. Análisis de Días con Menor Demanda
+¿Cuándo es menor la demanda de reservas?
+![Días con menor demanda](data/graficas/analisis/dias_menor_demanda.jpg)
 
 ```R
 # Análisis por combinación de mes y día del mes
@@ -608,7 +615,8 @@ print(head(reservas_por_dia_mes, 10))
 El análisis  por día del mes revela que las combinaciones específicas de mes y día con menor demanda se concentran en los meses de temporada baja (diciembre, enero, febrero).
 
 ### 5. Composición Familiar de las Reservas
-
+¿Cuántas reservas incluyen niños y/o bebés?
+![Reservas con familias](data/graficas/final/4_reservas_familias.jpg)
 ```R
 # Crear variables categóricas para facilitar el análisis
 hotel_data_limpio$tiene_ninos <- hotel_data_limpio$children > 0
@@ -663,6 +671,8 @@ Análisis de reservas con menores:
 El análisis de la presencia de menores en las reservas muestra diferencias significativas entre los tipos de hotel. El Resort Hotel tiene una mayor proporción de reservas con menores, particularmente bebés (donde duplica el porcentaje del City Hotel), lo que indica una mayor orientación hacia el segmento familiar.
 
 ### 6. Importancia de los Espacios de Estacionamiento
+¿Es importante contar con espacios de estacionamiento?
+![Necesidad de estacionamiento por hotel](data/graficas/analisis/estacionamiento_por_hotel.jpg)
 
 ```R
 # Análisis de necesidad de estacionamiento
@@ -725,6 +735,8 @@ Análisis de necesidad de estacionamiento:
 El análisis revela una marcada diferencia en la demanda de estacionamiento entre los dos tipos de hotel: mientras que en el City Hotel solo el 3.55% de las reservas requieren estacionamiento, en el Resort Hotel esta proporción alcanza el 16%, siendo cuatro veces mayor. Esta diferencia refleja la mayor dependencia del automóvil para los huéspedes de resorts, probablemente debido a su ubicación menos céntrica.
 
 ### 7. Análisis de Cancelaciones por Mes
+¿En qué meses se producen más cancelaciones?
+![Tasa de cancelación por mes](data/graficas/analisis/tasa_cancelacion_mes.jpg)
 
 ```R
 # Analizar cancelaciones por mes
