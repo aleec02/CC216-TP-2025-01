@@ -4,6 +4,47 @@
 
 <img src="imgs/hotel.png" alt="Hotel Image" width="400"/>
 
+
+# Tabla de Contenidos
+
+- [Resumen Ejecutivo](#resumen-ejecutivo)
+- [Integrantes del Grupo](#integrantes-del-grupo)
+- [Contexto del Proyecto](#contexto-del-proyecto)
+  - [Origen de los Datos](#origen-de-los-datos)
+  - [Relevancia y Aplicaciones](#relevancia-y-aplicaciones)
+- [Descripción del Dataset](#descripción-del-dataset)
+  - [Estructura General](#estructura-general)
+  - [Variables y Descripción](#variables-y-descripción)
+  - [Variables Derivadas](#variables-derivadas-generadas-durante-el-análisis)
+- [Metodología](#metodología)
+  - [Enfoque de Análisis](#enfoque-de-análisis)
+  - [Herramientas y Tecnologías](#herramientas-y-tecnologías)
+  - [Preprocesamiento de Datos](#preprocesamiento-de-datos)
+    - [Identificación y Tratamiento de Datos Faltantes](#identificación-y-tratamiento-de-datos-faltantes)
+    - [Identificación y Tratamiento de Datos Atípicos](#identificación-y-tratamiento-de-datos-atípicos)
+    - [Corrección de Inconsistencias Lógicas](#corrección-de-inconsistencias-lógicas)
+- [Análisis Exploratorio y Hallazgos](#análisis-exploratorio-y-hallazgos)
+  - [1. Distribución de Reservas por Tipo de Hotel](#1-distribución-de-reservas-por-tipo-de-hotel)
+  - [2. Evolución de la Demanda a lo Largo del Tiempo](#2-evolución-de-la-demanda-a-lo-largo-del-tiempo)
+  - [3. Identificación de Temporadas de Reserva](#3-identificación-de-temporadas-de-reserva)
+  - [4. Análisis de Días con Menor Demanda](#4-análisis-de-días-con-menor-demanda)
+  - [5. Composición Familiar de las Reservas](#5-composición-familiar-de-las-reservas)
+  - [6. Importancia de los Espacios de Estacionamiento](#6-importancia-de-los-espacios-de-estacionamiento)
+  - [7. Análisis de Cancelaciones por Mes](#7-análisis-de-cancelaciones-por-mes)
+  - [8. Relación entre Tiempo de Anticipación y Cancelaciones](#8-relación-entre-tiempo-de-anticipación-y-cancelaciones)
+  - [9. Duración de la Estancia por Tipo de Hotel](#9-duración-de-la-estancia-por-tipo-de-hotel)
+- [Visualizaciones Destacadas](#visualizaciones-destacadas)
+- [Recomendaciones Estratégicas](#recomendaciones-estratégicas)
+  - [1. Gestión de Demanda y Política de Precios](#1-gestión-de-demanda-y-política-de-precios)
+  - [2. Segmentación de Clientes y Servicios](#2-segmentación-de-clientes-y-servicios)
+  - [3. Gestión de Cancelaciones](#3-gestión-de-cancelaciones)
+  - [4. Desarrollo de Productos y Marketing](#4-desarrollo-de-productos-y-marketing)
+- [Estructura del Repositorio](#estructura-del-repositorio)
+- [Próximos Pasos y Futuros Análisis](#próximos-pasos-y-futuros-análisis)
+- [Consideraciones Técnicas](#consideraciones-técnicas)
+- [Licencia](#licencia)
+- [Referencias](#referencias)
+
 ## Resumen Ejecutivo
 
 Este repositorio contiene un análisis exploratorio de datos (EDA) del conjunto de datos "Hotel booking demand", realizado como parte del trabajo TB1 para el curso CC216 - Fundamentos de Data Science de la Universidad Peruana de Ciencias Aplicadas (UPC). El análisis examina patrones de reserva en dos tipos de hoteles portugueses (urbano y resort) durante un período de dos años, identificando tendencias estacionales, comportamientos de cancelación, preferencias de clientes y oportunidades de optimización operativa.
@@ -899,21 +940,36 @@ El repositorio incluye un conjunto de visualizaciones que ilustran los principal
 ```
 CC216-TP-2025-1/
 │
-├── data/
-│   ├── hotel_bookings.csv              # Dataset original
-│   ├── hotel_bookings_limpio.csv       # Dataset después de limpieza
-│   ├── hotel_bookings_final.csv        # Dataset con variables derivadas
-│   │
-│   └── graficas/                       # Visualizaciones generadas
-│       ├── analisis/                   # Gráficos exploratorios
-│       ├── limpios/                    # Gráficos tras limpieza
-│       └── final/                      # Visualizaciones finales
+├── CC216-TP-2025-1.Rproj           # Archivo de proyecto R
 │
 ├── code/
-│   └── TP-script.R                     # Script principal de análisis
+│   ├── muestral.R                  # Script para análisis muestral
+│   ├── TP-script.R                 # Script principal de análisis
+│   ├── tppp.Rmd                    # R Markdown para informe
+│   ├── tppp.html                   # Informe en formato HTML
+│   └── tppp.pdf                    # Informe en formato PDF
 │
-├── README.md                           # Este archivo
-└─── resultados.txt                  # Resultados detallados
+├── data/
+│   ├── hotel_bookings.csv          # Dataset original
+│   ├── hotel_bookings_limpio.csv   # Dataset después de limpieza
+│   ├── hotel_bookings_final.csv    # Dataset con variables derivadas
+│   │
+│   └── graficas/                   # Visualizaciones generadas
+│       ├── analisis/              
+│       │   ├── dias_menor_demanda.jpg
+│       │   ├── estacionamiento_por_hotel.jpg
+│       │   └── tasa_cancelacion_mes.jpg
+│       │
+│       └── final/
+│           ├── 1_demanda_hotel.jpg
+│           ├── 2_tendencia_demanda.jpg
+│           ├── 3_temporadas_reserva.jpg
+│           ├── 4_reservas_familias.jpg
+│           ├── 5_estacionamiento_cancelaciones.jpg
+│           └── 7_lead_time_cancelacion.jpg
+│
+├── imgs/
+│   └── hotel.png                   # Imagen
 ```
 
 ## Próximos Pasos y Futuros Análisis
@@ -946,7 +1002,6 @@ Este proyecto se distribuye bajo la licencia MIT. Consulte el archivo LICENSE pa
 
 2. Wilcox, R., & Keselman, J. (2003). Modern robust data analysis methods: measures of central tendency. *Psychol Methods*.
 
-3. Universidad Peruana de Ciencias Aplicadas (2025). CC216 - Fundamentos de Data Science: Guía para el Trabajo TB1.
 
 ---
 
