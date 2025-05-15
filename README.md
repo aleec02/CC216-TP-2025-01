@@ -994,7 +994,7 @@ Para profundizar en la comprensión de los patrones de reserva y comportamiento 
 
 ## Licencia
 
-Este proyecto se distribuye bajo la licencia MIT. Consulte el archivo LICENSE para más detalles.
+Este proyecto se distribuye bajo la licencia MIT. Consulte el archivo [LICENSE](./LICENSE.md) para más detalles.
 
 ## Referencias
 
