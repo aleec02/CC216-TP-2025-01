@@ -1,8 +1,28 @@
-sink("resultados.txt")
+# Registrar el inicio del análisis y capturar salida
+if (!dir.exists("output")) {
+  dir.create("output")
+}
+sink("output/resultados.txt")
+cat("==== INICIO DEL ANÁLISIS DE RESERVAS HOTELERAS ====\n")
+cat("Fecha y hora:", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n\n")
 
 #####################################################
-# PARTE 01: CONFIGURACIÓN INICIAL Y CARGA DE DATOS
+# PARTE 01: CONFIGURACIÓN INICIAL Y CARGA DE LIBRERÍAS
 #####################################################
+
+## LIBRARIES
+required_packages <- c(
+  "tidyverse", "naniar", "skimr", "knitr", "crayon", "ggplot2", 
+  "gridExtra", "grid", "scales", "zoo"
+)
+
+# Instalar e importar paquetes necesarios
+for (pkg in required_packages) {
+  if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
+    install.packages(pkg)
+    library(pkg, character.only = TRUE)
+  }
+}
 
 ## PROJECT WD
 if (exists(".rs.getProjectDirectory")) {
@@ -14,15 +34,6 @@ if (exists(".rs.getProjectDirectory")) {
   print(paste("Directorio actual (no RStudio):", project_dir))
 }
 
-## LIBRARIES
-if (!require("tidyverse", quietly = TRUE)) install.packages("tidyverse")
-if (!require("naniar", quietly = TRUE)) install.packages("naniar")
-if (!require("skimr", quietly = TRUE)) install.packages("skimr")
-if (!require("knitr", quietly = TRUE)) install.packages("knitr")
-if (!require("crayon", quietly = TRUE)) install.packages("crayon")
-if (!require("ggplot2", quietly = TRUE)) install.packages("ggplot2")
-if (!require("gridExtra", quietly = TRUE)) install.packages("gridExtra")
-
 ## INITIAL SETUP 
 library(tidyverse)
 library(naniar)
@@ -31,10 +42,52 @@ library(knitr)
 library(crayon)
 library(ggplot2)
 library(gridExtra)
+library(grid)
+library(scales)
+library(zoo)
 
+#####################################################
+# PARTE 02: DEFINICIÓN Y CREACIÓN DE ESTRUCTURA DE DIRECTORIOS
+#####################################################
+
+# Definir estructura de directorios
 data_dir <- file.path(project_dir, "data")
 code_dir <- file.path(project_dir, "code")
+output_dir <- file.path(project_dir, "output")
 
+# Estructura para gráficas - CAMBIO: gráficas como subdirectorio de output
+graficas_dir <- file.path(output_dir, "graficas")
+dirs_graficas <- c(
+  "respuestas",     # Respuestas directas a las preguntas
+  "insights",       # Análisis de insights específicos
+  "comparativas",   # Visualizaciones comparativas
+  "complementarios", # Gráficas complementarias
+  "limpieza",       # Gráficas de limpieza de datos
+  "analisis",       # Gráficas del análisis general
+  "final"           # Gráficas finales
+)
+
+# Función mejorada para crear directorios de forma recursiva
+create_dir_recursively <- function(path) {
+  if (!dir.exists(path)) {
+    dir.create(path, recursive = TRUE)
+    cat(green("Creado directorio:"), path, "\n")
+    return(TRUE)
+  }
+  return(FALSE)
+}
+
+# Crear estructura principal de directorios
+create_dir_recursively(output_dir)
+create_dir_recursively(graficas_dir)
+
+# Crear todos los subdirectorios de gráficas
+for (subdir in dirs_graficas) {
+  dir_path <- file.path(graficas_dir, subdir)
+  create_dir_recursively(dir_path)
+}
+
+# Verificar directorios necesarios
 if (!dir.exists(data_dir)) {
   stop(red("El directorio de datos no existe:", data_dir))
 }
@@ -45,18 +98,54 @@ if (!dir.exists(code_dir)) {
 cat(green("Directorio del proyecto:"), project_dir, "\n")
 cat(green("Directorio de datos:"), data_dir, "\n")
 cat(green("Directorio de código:"), code_dir, "\n")
+cat(green("Directorio de salida:"), output_dir, "\n")
+cat(green("Directorio de gráficas:"), graficas_dir, "\n")
 
 
-
+# Definir rutas para los archivos CSV
 CSV_original <- file.path(data_dir, "hotel_bookings.csv")
+CSV_limpio <- file.path(data_dir, "hotel_bookings_limpio.csv")
+CSV_final <- file.path(data_dir, "hotel_bookings_final.csv")
+
+cat(green("\nRutas para guardar datasets procesados:"), "\n")
+cat("Dataset original:", CSV_original, "\n")
+cat("Dataset limpio:", CSV_limpio, "\n")
+cat("Dataset final:", CSV_final, "\n")
+
+# Definir paletas de colores y temas para gráficas 
+# (definimos esto temprano para usarlo en todas las visualizaciones)
+colores_hotel <- c("City Hotel" = "#3498db", "Resort Hotel" = "#2ecc71")
+colores_temporada <- c("Alta" = "#e74c3c", "Media" = "#f39c12", "Baja" = "#3498db")
+colores_principales <- c("#3498db", "#2ecc71", "#e74c3c", "#f39c12", "#9b59b6")
+
+# Definir tema base para todas las gráficas
+tema_base <- theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    plot.subtitle = element_text(hjust = 0.5, size = 12),
+    axis.title = element_text(size = 10),
+    axis.text = element_text(size = 9),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    legend.position = "bottom"
+  )
+
+#####################################################
+# PARTE 03: CARGA Y ANÁLISIS INICIAL DE DATOS
+#####################################################
+
 if (!file.exists(CSV_original)) {
   stop(red("El archivo CSV no existe:", CSV_original))
 }
 
 cat(green("Cargando datos desde:"), CSV_original, "\n")
-hotel_data <- read.csv(CSV_original, header = TRUE, stringsAsFactors = FALSE)
+hotel_data_original <- read.csv(CSV_original, header = TRUE, stringsAsFactors = FALSE)
 
-hotel_data <- unique(hotel_data)
+# Eliminar duplicados
+hotel_data <- unique(hotel_data_original)
+cat("Registros originales:", nrow(hotel_data_original), 
+    "→ Registros únicos:", nrow(hotel_data), 
+    "(", nrow(hotel_data_original) - nrow(hotel_data), "duplicados eliminados)\n")
 
 # Inspección inicial
 cat(yellow("\n--- DIMENSIONES DEL DATASET ---\n"))
@@ -74,23 +163,12 @@ print(summary(hotel_data))
 cat(yellow("\n--- ANÁLISIS DETALLADO CON SKIMR ---\n"))
 print(skim(hotel_data))
 
-
-CSV_limpio <- file.path(data_dir, "hotel_bookings_limpio.csv")
-CSV_final <- file.path(data_dir, "hotel_bookings_final.csv")
-
-cat(green("\nRutas para guardar datasets procesados:"), "\n")
-cat("Dataset limpio:", CSV_limpio, "\n")
-cat("Dataset final", CSV_final, "\n")
-
-
-
-
 #####################################################
-# PARTE 02: ANÁLISIS DE DATOS FALTANTES Y ATÍPICOS
+# PARTE 04: ANÁLISIS DE DATOS FALTANTES Y ATÍPICOS
 #####################################################
 
 #------------------------------------------
-# 2.1. ANÁLISIS DE DATOS FALTANTES (NA)
+# 4.1. ANÁLISIS DE DATOS FALTANTES (NA)
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE DATOS FALTANTES ---\n"))
 
@@ -123,9 +201,8 @@ cat(yellow("\nAnálisis específico para la variable 'children':"))
 cat("\nDistribución de valores no-NA en 'children':\n")
 print(table(hotel_data$children, useNA = "ifany"))
 
-
 #------------------------------------------
-# 2.2. ANÁLISIS DE VALORES ATÍPICOS (OUTLIERS)
+# 4.2. ANÁLISIS DE VALORES ATÍPICOS (OUTLIERS)
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE VALORES ATÍPICOS ---\n"))
 
@@ -193,11 +270,12 @@ for (var in variables_interes) {
   mostrar_extremos(hotel_data, var)
 }
 
-
 # Crear histogramas individuales para variables clave
 cat(yellow("\nHistogramas para variables clave:"))
 
 crear_histogramas_mejorados <- function(data, variables) {
+  histogramas <- list()
+  
   for (var in variables) {
     # Para variables con valores extremos, usar zoom
     if(var == "lead_time") {
@@ -224,17 +302,19 @@ crear_histogramas_mejorados <- function(data, variables) {
         labs(title = paste("Histograma de", var), x = var, y = "Frecuencia") +
         theme_minimal()
     }
+    
     print(p)
+    histogramas[[var]] <- p
   }
+  
+  return(histogramas)
 }
 
-cat("\nCreando histogramas mejorados para variables clave...\n")
-crear_histogramas_mejorados(hotel_data, variables_interes)
-
-
+cat("\nCreando histogramas para datos originales...\n")
+histogramas_originales <- crear_histogramas_mejorados(hotel_data, variables_interes)
 
 #------------------------------------------
-# 2.3. VERIFICACIÓN DE CONSISTENCIA LÓGICA
+# 4.3. VERIFICACIÓN DE CONSISTENCIA LÓGICA
 #------------------------------------------
 cat(yellow("\n--- VERIFICACIÓN DE CONSISTENCIA LÓGICA ---\n"))
 
@@ -255,9 +335,8 @@ cat("\nPosibles errores en 'adults':")
 adultos_tabla <- table(hotel_data$adults)
 print(adultos_tabla)
 
-
 #------------------------------------------
-# 2.4. DEFINIR ESTRATEGIAS PARA DATOS FALTANTES Y ATÍPICOS
+# 4.4. ESTRATEGIAS PARA DATOS FALTANTES Y ATÍPICOS
 #------------------------------------------
 cat(yellow("\n--- ESTRATEGIAS PROPUESTAS ---\n"))
 
@@ -270,18 +349,15 @@ cat("   - adults: Valores superiores a 4 parecen errores, considerar recortar a 
 cat("   - stays_in_weekend_nights y stays_in_week_nights: Establecer límites razonables (ej. máximo 14 días)\n")
 cat("   - adr: Eliminar valores negativos y recortar valores extremadamente altos (ej. > 1000)\n")
 
-
-
-
 #####################################################
-# PARTE 03: PREPROCESAMIENTO DE DATOS
+# PARTE 05: PREPROCESAMIENTO DE DATOS
 #####################################################
 
 # Crear una copia para no modificar los datos originales
 hotel_data_limpio <- hotel_data
 
 #------------------------------------------
-# 3.1. TRATAMIENTO DE DATOS FALTANTES
+# 5.1. TRATAMIENTO DE DATOS FALTANTES
 #------------------------------------------
 cat(yellow("\n--- TRATAMIENTO DE DATOS FALTANTES ---\n"))
 
@@ -290,7 +366,7 @@ hotel_data_limpio$children[is.na(hotel_data_limpio$children)] <- 0
 cat("Valores NA en 'children' después de imputación:", sum(is.na(hotel_data_limpio$children)), "\n")
 
 #------------------------------------------
-# 3.2. TRATAMIENTO DE VALORES ATÍPICOS (OUTLIERS)
+# 5.2. TRATAMIENTO DE VALORES ATÍPICOS (OUTLIERS)
 #------------------------------------------
 cat(yellow("\n--- TRATAMIENTO DE VALORES ATÍPICOS ---\n"))
 
@@ -301,13 +377,13 @@ winsorizar <- function(x, lower_limit, upper_limit) {
   return(x)
 }
 
-# 3.2.1. Winsorizar lead_time (tiempo de anticipación)
+# 5.2.1. Winsorizar lead_time (tiempo de anticipación)
 cat("\nTratamiento de 'lead_time':")
 cat("\n  Antes - Max:", max(hotel_data_limpio$lead_time), "Min:", min(hotel_data_limpio$lead_time))
 hotel_data_limpio$lead_time <- winsorizar(hotel_data_limpio$lead_time, 0, 365)
 cat("\n  Después - Max:", max(hotel_data_limpio$lead_time), "Min:", min(hotel_data_limpio$lead_time), "\n")
 
-# 3.2.2. Corregir adults (adultos)
+# 5.2.2. Corregir adults (adultos)
 cat("\nTratamiento de 'adults':")
 cat("\n  Antes - Max:", max(hotel_data_limpio$adults), "Min:", min(hotel_data_limpio$adults))
 # Reemplazar valores 0 con 1 (no tiene sentido una reserva sin adultos)
@@ -316,7 +392,7 @@ hotel_data_limpio$adults[hotel_data_limpio$adults == 0] <- 1
 hotel_data_limpio$adults <- winsorizar(hotel_data_limpio$adults, 1, 4)
 cat("\n  Después - Max:", max(hotel_data_limpio$adults), "Min:", min(hotel_data_limpio$adults), "\n")
 
-# 3.2.3. Winsorizar stays_in_weekend_nights y stays_in_week_nights
+# 5.2.3. Winsorizar stays_in_weekend_nights y stays_in_week_nights
 cat("\nTratamiento de 'stays_in_weekend_nights':")
 cat("\n  Antes - Max:", max(hotel_data_limpio$stays_in_weekend_nights))
 hotel_data_limpio$stays_in_weekend_nights <- winsorizar(hotel_data_limpio$stays_in_weekend_nights, 0, 14)
@@ -327,7 +403,7 @@ cat("\n  Antes - Max:", max(hotel_data_limpio$stays_in_week_nights))
 hotel_data_limpio$stays_in_week_nights <- winsorizar(hotel_data_limpio$stays_in_week_nights, 0, 14)
 cat("\n  Después - Max:", max(hotel_data_limpio$stays_in_week_nights), "\n")
 
-# 3.2.4. Tratar adr (tarifa diaria promedio)
+# 5.2.4. Tratar adr (tarifa diaria promedio)
 cat("\nTratamiento de 'adr':")
 cat("\n  Antes - Max:", max(hotel_data_limpio$adr), "Min:", min(hotel_data_limpio$adr))
 # Reemplazar valores negativos con 0
@@ -336,7 +412,7 @@ hotel_data_limpio$adr[hotel_data_limpio$adr < 0] <- 0
 hotel_data_limpio$adr <- winsorizar(hotel_data_limpio$adr, 0, 1000)
 cat("\n  Después - Max:", max(hotel_data_limpio$adr), "Min:", min(hotel_data_limpio$adr), "\n")
 
-# 3.2.5. Winsorizar otros valores numéricos
+# 5.2.5. Winsorizar otros valores numéricos
 cat("\nTratamiento de 'children':")
 hotel_data_limpio$children <- winsorizar(hotel_data_limpio$children, 0, 3)
 cat("\n  Después - Max:", max(hotel_data_limpio$children), "\n")
@@ -346,7 +422,7 @@ hotel_data_limpio$babies <- winsorizar(hotel_data_limpio$babies, 0, 2)
 cat("\n  Después - Max:", max(hotel_data_limpio$babies), "\n")
 
 #------------------------------------------
-# 3.3. TRATAMIENTO DE INCONSISTENCIAS LÓGICAS
+# 5.3. TRATAMIENTO DE INCONSISTENCIAS LÓGICAS
 #------------------------------------------
 cat(yellow("\n--- TRATAMIENTO DE INCONSISTENCIAS LÓGICAS ---\n"))
 
@@ -363,7 +439,7 @@ cat("Reservas con estancia de 0 días después de corrección:",
           hotel_data_limpio$stays_in_week_nights == 0), "\n")
 
 #------------------------------------------
-# 4. VERIFICACIÓN DE LIMPIEZA
+# 5.4. VERIFICACIÓN DE LIMPIEZA Y CREACIÓN DE HISTOGRAMAS COMPARATIVOS
 #------------------------------------------
 cat(yellow("\n--- VERIFICACIÓN DE LIMPIEZA ---\n"))
 
@@ -379,93 +455,45 @@ outlier_summary_limpio <- do.call(rbind, lapply(numeric_vars, function(var) {
 cat("\nResumen de outliers después de limpieza:\n")
 print(outlier_summary_limpio)
 
+# Crear histogramas para datos limpios
+cat("\nCreando histogramas para datos limpios...\n")
+histogramas_limpios <- crear_histogramas_mejorados(hotel_data_limpio, variables_interes)
 
-
-
-#------------------------------------------
-# 4.5 GUARDAR GRÁFICAS COMO JPG EN DATA FOLDER
-#------------------------------------------
-cat(yellow("\n--- GUARDANDO GRÁFICAS EN FORMATO JPG ---\n"))
-
-graphics_dir <- file.path(data_dir, "graficas")
-if (!dir.exists(graphics_dir)) {
-  dir.create(graphics_dir)
-  cat("Creado directorio para gráficas:", graphics_dir, "\n")
-} else {
-  cat("Usando directorio existente para gráficas:", graphics_dir, "\n")
-}
-
-graphics_clean_dir <- file.path(graphics_dir, "limpios")
-if (!dir.exists(graphics_clean_dir)) {
-  dir.create(graphics_clean_dir)
-  cat("Creado directorio para gráficas de datos limpios:", graphics_clean_dir, "\n")
-} else {
-  cat("Usando directorio existente para gráficas limpias:", graphics_clean_dir, "\n")
-}
-
-crear_y_guardar_histogramas <- function(data, variables, directorio) {
-  graficas_guardadas <- c()
-  
+# Crear y guardar histogramas comparativos
+crear_histogramas_comparativos <- function(data_original, data_limpio, variables, save_dir) {
   for (var in variables) {
-    # Nombre del archivo para guardar
-    filename <- file.path(directorio, paste0("histograma_", var, ".jpg"))
+    # Histograma original
+    p_orig <- ggplot(data_original, aes(x = .data[[var]])) +
+      geom_histogram(bins = 30, fill = "steelblue", color = "black", alpha = 0.7) +
+      labs(title = paste("Distribución original -", var),
+           x = var, y = "Frecuencia") +
+      theme_minimal()
     
-    if(var == "lead_time") {
-      p <- ggplot(data, aes(x = .data[[var]])) +
-        geom_histogram(bins = 30, fill = "steelblue", color = "black") +
-        labs(title = paste("Histograma de", var), x = var, y = "Frecuencia") +
-        theme_minimal() +
-        xlim(0, 400)  # Zoom para ver mejor la distribución principal
-    } else if(var == "adults") {
-      p <- ggplot(data, aes(x = .data[[var]])) +
-        geom_histogram(bins = 30, fill = "steelblue", color = "black") +
-        labs(title = paste("Histograma de", var), x = var, y = "Frecuencia") +
-        theme_minimal() +
-        xlim(0, 5)  # Enfocarse en valores razonables
-    } else if(var == "adr") {
-      p <- ggplot(data, aes(x = .data[[var]])) +
-        geom_histogram(bins = 30, fill = "steelblue", color = "black") +
-        labs(title = paste("Histograma de", var), x = var, y = "Frecuencia") +
-        theme_minimal() +
-        xlim(0, 500)  # Enfocarse en el rango principal
-    } else {
-      p <- ggplot(data, aes(x = .data[[var]])) +
-        geom_histogram(bins = 30, fill = "steelblue", color = "black") +
-        labs(title = paste("Histograma de", var), x = var, y = "Frecuencia") +
-        theme_minimal()
-    }
+    # Histograma limpio
+    p_limpio <- ggplot(data_limpio, aes(x = .data[[var]])) +
+      geom_histogram(bins = 30, fill = "darkgreen", color = "black", alpha = 0.7) +
+      labs(title = paste("Distribución después de limpieza -", var),
+           x = var, y = "Frecuencia") +
+      theme_minimal()
     
-    # Guardar el gráfico como JPG
-    ggsave(filename = filename, plot = p, width = 8, height = 6, dpi = 300)
-    graficas_guardadas <- c(graficas_guardadas, filename)
-    cat(" - Guardado:", filename, "\n")
+    # Combinar gráficos
+    p_combined <- grid.arrange(p_orig, p_limpio, ncol = 2,
+                               top = textGrob(paste("Comparativa de distribución -", var),
+                                              gp = gpar(fontsize = 16, fontface = "bold")))
+    
+    # Guardar gráfico combinado
+    ggsave(filename = file.path(graficas_dir, "limpieza", paste0("histograma_comparativo_", var, ".jpg")),
+           plot = p_combined, width = 12, height = 6, dpi = 300)
+    
   }
-  
-  return(graficas_guardadas)
 }
 
-cat("\nGuardando histogramas para datos originales...\n")
-histogramas_originales <- crear_y_guardar_histogramas(
-  hotel_data, 
-  variables_interes, 
-  graphics_dir
-)
-
-cat("\nGuardando histogramas para datos limpios...\n")
-histogramas_limpios <- crear_y_guardar_histogramas(
-  hotel_data_limpio, 
-  variables_interes, 
-  graphics_clean_dir
-)
-
-cat("\nTotal de archivos guardados:", 
-    length(c(histogramas_originales, histogramas_limpios)), "\n")
-
-
-
+cat("\nGuardando histogramas comparativos para visualizar la limpieza...\n")
+crear_histogramas_comparativos(hotel_data, hotel_data_limpio, variables_interes, 
+                               file.path(graficas_dir, "limpieza"))
 
 #------------------------------------------
-# PARTE 05. GUARDAR DATASET LIMPIO Y COMPARAR DIMENSIONES
+# 5.5. GUARDAR DATASET LIMPIO Y COMPARAR DIMENSIONES
 #------------------------------------------
 cat(yellow("\n--- GUARDANDO DATASET LIMPIO Y COMPARANDO DIMENSIONES ---\n"))
 
@@ -499,8 +527,6 @@ cat(sprintf("De cada 100 filas en el dataset original, %.0f eran registros únic
 
 cat(yellow("\n--- COMPARACIÓN DE DIMENSIONES ---\n"))
 
-# Cargar el CSV original
-hotel_data_original <- read.csv(CSV_original, header = TRUE, stringsAsFactors = FALSE)
 dim_original <- dim(hotel_data_original)
 
 cat("1. CSV original (sin procesar):", dim_original[1], "filas x", dim_original[2], "columnas\n")
@@ -534,20 +560,6 @@ if (filas_diff_2 != 0) {
            dim(hotel_data_limpio)[1], " filas)\n"))
 }
 
-if (cols_diff_2 != 0) {
-  # Identificar las columnas adicionales
-  cols_originales <- colnames(hotel_data)
-  cols_limpias <- colnames(hotel_data_limpio)
-  cols_nuevas <- setdiff(cols_limpias, cols_originales)
-  
-  cat(blue("• Se crearon", cols_diff_2, "columnas derivadas durante la transformación:\n"))
-  for (col in cols_nuevas) {
-    cat("  - ", col, "\n")
-  }
-} else {
-  cat(blue("• No se añadieron columnas adicionales durante la transformación\n"))
-}
-
 # Informe técnico detallado con comparaciones antes/después
 cat(yellow("\nINFORME TÉCNICO DE TRANSFORMACIONES - ANTES vs DESPUÉS:\n"))
 
@@ -569,6 +581,7 @@ mostrar_comparacion <- function(variable, min_antes, max_antes, min_despues, max
     cat("  - ", variable, ": [", min_antes, ", ", max_antes, "] → [", min_despues, ", ", max_despues, "]\n", sep="")
   }
 }
+
 
 # lead_time
 lead_time_antes <- range(hotel_data$lead_time)
@@ -697,10 +710,15 @@ if (!dir.exists(graphics_analysis_dir)) {
   cat("Creado directorio para gráficas de análisis:", graphics_analysis_dir, "\n")
 }
 
+
+
 #------------------------------------------
-# EDA 01: ¿CUÁNTAS RESERVAS SE REALIZAN POR TIPO DE HOTEL? ¿QUÉ TIPO DE HOTEL PREFIERE LA GENTE?
+# EDA 01: ¿CUÁNTAS RESERVAS SE REALIZAN POR TIPO DE HOTEL? 
 #------------------------------------------
-cat(yellow("\n--- ANÁLISIS POR TIPO DE HOTEL ---\n"))
+cat(yellow("\n--- ¿CUÁNTAS RESERVAS SE REALIZAN POR TIPO DE HOTEL? ¿QUÉ TIPO DE HOTEL PREFIERE LA GENTE? ---\n"))
+
+# Determinar años disponibles para contextualizar
+años_disponibles <- unique(hotel_data_limpio$arrival_date_year)
 
 # Contar reservas por tipo de hotel
 reservas_por_hotel <- table(hotel_data_limpio$hotel)
@@ -718,7 +736,7 @@ print(reservas_por_hotel_df)
 # Visualizar distribución
 plot_hoteles <- ggplot(reservas_por_hotel_df, aes(x = Tipo_Hotel, y = Cantidad, fill = Tipo_Hotel)) +
   geom_bar(stat = "identity") +
-  geom_text(aes(label = paste0(Cantidad, "\n(", Porcentaje, "%)")), 
+  geom_text(aes(label = paste0(format(Cantidad, big.mark = ","), "\n(", Porcentaje, "%)")), 
             position = position_stack(vjust = 0.5), color = "white", size = 4) +
   labs(title = "Cantidad de reservas por tipo de hotel",
        x = "Tipo de hotel",
@@ -726,11 +744,27 @@ plot_hoteles <- ggplot(reservas_por_hotel_df, aes(x = Tipo_Hotel, y = Cantidad, 
   theme_minimal() +
   theme(legend.position = "none")
 
-print(plot_hoteles)
+# Visualizar distribución mejorada para respuestas
+plot_demanda_hotel <- ggplot(reservas_por_hotel_df, aes(x = Tipo_Hotel, y = Cantidad, fill = Tipo_Hotel)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(format(Cantidad, big.mark = ","), "\n(", Porcentaje, "%)")), 
+            position = position_stack(vjust = 0.5), color = "white", size = 4) +
+  labs(title = "Demanda por Tipo de Hotel (Muestra Completa)",
+       subtitle = paste("Total de", format(sum(reservas_por_hotel_df$Cantidad), big.mark = ","), 
+                        "reservas en", length(años_disponibles), "años"),
+       x = "Tipo de Hotel",
+       y = "Número de Reservas") +
+  scale_fill_manual(values = colores_hotel) +
+  scale_y_continuous(labels = comma) +
+  tema_base
 
-ggsave(file.path(graphics_analysis_dir, "reservas_por_hotel.jpg"), 
+# Guardar gráfica principal para respuestas
+ggsave(file.path(graficas_dir, "respuestas", "1_demanda_hotel_muestral.jpg"), 
+       plot_demanda_hotel, width = 10, height = 7, dpi = 300)
+
+# Guardar gráficas adicionales
+ggsave(file.path(graficas_dir, "analisis", "1a_reservas_por_hotel.jpg"), 
        plot_hoteles, width = 8, height = 6, dpi = 300)
-
 
 # Análisis por estado de cancelación para ver preferencia real
 reservas_completadas <- hotel_data_limpio[hotel_data_limpio$is_canceled == 0, ]
@@ -749,7 +783,7 @@ print(reservas_completadas_df)
 # Visualizar reservas completadas
 plot_completadas <- ggplot(reservas_completadas_df, aes(x = Tipo_Hotel, y = Reservas_Completadas, fill = Tipo_Hotel)) +
   geom_bar(stat = "identity") +
-  geom_text(aes(label = paste0(Reservas_Completadas, "\n(", Porcentaje, "%)")), 
+  geom_text(aes(label = paste0(format(Reservas_Completadas, big.mark = ","), "\n(", Porcentaje, "%)")), 
             position = position_stack(vjust = 0.5), color = "white", size = 4) +
   labs(title = "Reservas completadas por tipo de hotel",
        subtitle = "Excluyendo reservas canceladas",
@@ -758,86 +792,68 @@ plot_completadas <- ggplot(reservas_completadas_df, aes(x = Tipo_Hotel, y = Rese
   theme_minimal() +
   theme(legend.position = "none")
 
-print(plot_completadas)
-
-# Guardar gráfica
-ggsave(file.path(graphics_analysis_dir, "reservas_completadas_por_hotel.jpg"), 
+ggsave(file.path(graficas_dir, "complementarios", "1b_reservas_completadas_por_hotel.jpg"), 
        plot_completadas, width = 8, height = 6, dpi = 300)
+
+# Análisis más detallado por cancelación y tipo de hotel
+demanda_hotel_detalle <- hotel_data_limpio %>%
+  group_by(hotel, is_canceled) %>%
+  summarise(Cantidad = n(), .groups = 'drop') %>%
+  mutate(Estado = ifelse(is_canceled == 0, "Confirmada", "Cancelada"))
+
+# Calcular porcentajes por hotel
+demanda_hotel_detalle <- demanda_hotel_detalle %>%
+  group_by(hotel) %>%
+  mutate(Total_Hotel = sum(Cantidad),
+         Porcentaje = round(Cantidad / Total_Hotel * 100, 1)) %>%
+  ungroup() %>%
+  mutate(Etiqueta = paste0(format(Cantidad, big.mark = ","), "\n(", Porcentaje, "%)"))
+
+# Gráfico combinado de estado por hotel
+plot_demanda_detalle <- ggplot(demanda_hotel_detalle, 
+                               aes(x = hotel, y = Cantidad, fill = Estado)) +
+  geom_bar(stat = "identity", position = "stack") +
+  geom_text(aes(label = Etiqueta), 
+            position = position_stack(vjust = 0.5), color = "white", size = 4) +
+  labs(title = "Demanda por Tipo de Hotel con Detalle de Estado",
+       subtitle = "Desglose por reservas confirmadas y canceladas",
+       x = "Tipo de Hotel",
+       y = "Número de Reservas") +
+  scale_fill_manual(values = c("Confirmada" = "#2ecc71", "Cancelada" = "#e74c3c")) +
+  scale_y_continuous(labels = comma) +
+  tema_base
+
+ggsave(file.path(graficas_dir, "complementarios", "1c_demanda_hotel_detalle.jpg"), 
+       plot_demanda_detalle, width = 10, height = 7, dpi = 300)
+
+
 
 #------------------------------------------
 # EDA 02: ¿ESTÁ AUMENTANDO LA DEMANDA CON EL TIEMPO?
+#------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE TENDENCIA DE DEMANDA ---\n"))
 
-# Análisis por año y mes
-# Convertir mes a factor ordenado
-hotel_data_limpio$arrival_date_month <- factor(
-  hotel_data_limpio$arrival_date_month,
-  levels = c("January", "February", "March", "April", "May", "June", 
-             "July", "August", "September", "October", "November", "December")
-)
+# Asegurarse de que arrival_date_month está como factor con el orden correcto
+if (!is.factor(hotel_data_limpio$arrival_date_month)) {
+  hotel_data_limpio$arrival_date_month <- factor(
+    hotel_data_limpio$arrival_date_month,
+    levels = c("January", "February", "March", "April", "May", "June", 
+               "July", "August", "September", "October", "November", "December")
+  )
+}
 
-# Crear columna de fecha combinada (año-mes)
-hotel_data_limpio$arrival_yearmonth <- paste(
-  hotel_data_limpio$arrival_date_year,
-  sprintf("%02d", as.numeric(factor(hotel_data_limpio$arrival_date_month, 
-                                    levels = c("January", "February", "March", "April", "May", "June", 
-                                               "July", "August", "September", "October", "November", "December")))),
-  sep = "-"
-)
+# Crear columna de fecha combinada (año-mes) si no existe
+if (!"arrival_yearmonth" %in% colnames(hotel_data_limpio)) {
+  hotel_data_limpio$arrival_yearmonth <- paste(
+    hotel_data_limpio$arrival_date_year,
+    sprintf("%02d", as.numeric(factor(hotel_data_limpio$arrival_date_month, 
+                                      levels = c("January", "February", "March", "April", "May", "June", 
+                                                 "July", "August", "September", "October", "November", "December")))),
+    sep = "-"
+  )
+}
 
 # Agregación por año-mes
-reservas_por_tiempo <- hotel_data_limpio %>%
-  group_by(arrival_yearmonth) %>%
-  summarise(
-    Total_Reservas = n(),
-    Reservas_Completadas = sum(is_canceled == 0)
-  ) %>%
-  arrange(arrival_yearmonth)
-
-
-
-# Mostrar tendencia de reservas de forma más clara
-cat(yellow("\n--- TENDENCIA DE RESERVAS A LO LARGO DEL TIEMPO ---\n"))
-
-# Calcular tasa de cancelación para cada período
-reservas_por_tiempo <- reservas_por_tiempo %>%
-  mutate(
-    Tasa_Cancelacion = round((Total_Reservas - Reservas_Completadas) / Total_Reservas * 100, 1),
-    Periodo = paste(substr(arrival_yearmonth, 1, 4), substr(arrival_yearmonth, 6, 7), sep = "-")
-  ) %>%
-  select(Periodo, Total_Reservas, Reservas_Completadas, Tasa_Cancelacion)
-
-# Mostrar tabla bonita
-cat("\nDatos de reservas por período (primeros 10 meses):\n\n")
-print(knitr::kable(head(reservas_por_tiempo, 10),
-                   col.names = c("Período", "Total Reservas", "Reservas Completadas", "Tasa Cancelación (%)"),
-                   align = c("l", "r", "r", "r"),
-                   format = "simple"))
-
-# Mostrar estadísticas de resumen
-cat("\nEstadísticas de resumen:\n")
-cat("- Período con mayor cantidad de reservas:", 
-    reservas_por_tiempo$Periodo[which.max(reservas_por_tiempo$Total_Reservas)], 
-    "con", max(reservas_por_tiempo$Total_Reservas), "reservas\n")
-cat("- Período con menor cantidad de reservas:", 
-    reservas_por_tiempo$Periodo[which.min(reservas_por_tiempo$Total_Reservas)], 
-    "con", min(reservas_por_tiempo$Total_Reservas), "reservas\n")
-cat("- Tasa de cancelación promedio:", 
-    round(mean(reservas_por_tiempo$Tasa_Cancelacion), 1), "%\n")
-
-# Mostrar tendencia principal
-primero <- head(reservas_por_tiempo, 1)
-ultimo <- tail(reservas_por_tiempo, 1)
-cambio_porc <- round((ultimo$Total_Reservas - primero$Total_Reservas) / primero$Total_Reservas * 100, 1)
-
-cat("\nTendencia general:", ifelse(cambio_porc > 0, "AUMENTO", "DISMINUCIÓN"), 
-    "del", abs(cambio_porc), "% en reservas totales",
-    "desde", primero$Periodo, "hasta", ultimo$Periodo, "\n")
-
-
-
-
-# Primero, preparo los datos calculando porcentajes
 reservas_por_tiempo <- hotel_data_limpio %>%
   group_by(arrival_yearmonth) %>%
   summarise(
@@ -851,53 +867,78 @@ reservas_por_tiempo <- hotel_data_limpio %>%
   ) %>%
   arrange(arrival_yearmonth)
 
+# Mostrar tendencia de reservas de forma más clara
+cat(yellow("\n--- EDA 02: ¿ESTÁ AUMENTANDO LA DEMANDA CON EL TIEMPO? ---\n"))
+
+# Calcular tasa de cancelación para cada período
+reservas_por_tiempo <- reservas_por_tiempo %>%
+  mutate(
+    Tasa_Cancelacion = round((Total_Reservas - Reservas_Completadas) / Total_Reservas * 100, 1),
+    Periodo = paste(substr(arrival_yearmonth, 1, 4), substr(arrival_yearmonth, 6, 7), sep = "-")
+  ) %>%
+  select(Periodo, Total_Reservas, Reservas_Completadas, Tasa_Cancelacion)
+
 # Reorganizo los datos para facilitar la visualización apilada
 datos_para_grafico <- reservas_por_tiempo %>%
   pivot_longer(
-    cols = c(Reservas_Completadas, Reservas_Canceladas),
+    cols = c(Reservas_Completadas),
     names_to = "Estado",
     values_to = "Cantidad"
-  ) %>%
-  mutate(
-    Porcentaje = ifelse(
-      Estado == "Reservas_Completadas", 
-      Porcentaje_Completadas, 
-      Porcentaje_Canceladas
-    )
   )
+
+# Preparar datos para tendencia temporal
+tendencia_temporal <- hotel_data_limpio %>%
+  mutate(YearMonth = paste(arrival_date_year, 
+                           sprintf("%02d", as.numeric(factor(arrival_date_month, 
+                                                             levels = c("January", "February", "March", "April", "May", "June", 
+                                                                        "July", "August", "September", "October", "November", "December")))),
+                           sep = "-")) %>%
+  group_by(YearMonth, hotel) %>%
+  summarise(Total_Reservas = n(), .groups = 'drop') %>%
+  arrange(YearMonth)
+
+# Crear gráfico de tendencia
+plot_tendencia_final <- ggplot(tendencia_temporal, 
+                               aes(x = YearMonth, y = Total_Reservas, color = hotel, group = hotel)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 2) +
+  labs(title = "Evolución de la Demanda a lo Largo del Tiempo",
+       subtitle = "Desglose por tipo de hotel",
+       x = "Año-Mes",
+       y = "Número de Reservas",
+       color = "Tipo de Hotel") +
+  scale_color_manual(values = colores_hotel) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+        plot.subtitle = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 90, hjust = 1, size = 8),
+        legend.position = "bottom")
+
+# Guardar gráfica principal para respuestas (gráfica de imagen 1)
+ggsave(file.path(graficas_dir, "respuestas", "2_tendencia_demanda_tiempo.jpg"), 
+       plot_tendencia_final, width = 12, height = 7, dpi = 300)
 
 # Creo un gráfico que muestra valores absolutos y porcentajes
 plot_tendencia_porcentajes <- ggplot(datos_para_grafico, 
-                                     aes(x = arrival_yearmonth, y = Cantidad, 
-                                         fill = Estado, group = Estado)) +
-  geom_bar(stat = "identity", position = "stack") +
-  geom_text(aes(label = paste0(Porcentaje, "%")), 
-            position = position_stack(vjust = 0.5),
-            color = "white", size = 3) +
-  labs(title = "Tendencia de reservas a lo largo del tiempo",
-       subtitle = "Mostrando porcentajes de reservas completadas y canceladas",
+                                     aes(x = Periodo, y = Cantidad, group = 1)) +
+  geom_line(color = "#2ecc71", size = 1.2) +
+  geom_point(color = "#2ecc71", size = 2) +
+  labs(title = "Tendencia de reservas completadas a lo largo del tiempo",
        x = "Año-Mes",
-       y = "Cantidad de reservas",
-       fill = "Estado") +
-  scale_fill_manual(values = c("Reservas_Completadas" = "#2ecc71", 
-                               "Reservas_Canceladas" = "#e74c3c"),
-                    labels = c("Completadas", "Canceladas")) +
+       y = "Cantidad de reservas") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1),
-        legend.position = "bottom")
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
-print(plot_tendencia_porcentajes)
-
-# Guardar gráfica
-ggsave(file.path(graphics_analysis_dir, "tendencia_reservas_porcentajes.jpg"), 
+# Guardar gráfica adicional
+ggsave(file.path(graficas_dir, "analisis", "2a_tendencia_reservas_completadas.jpg"), 
        plot_tendencia_porcentajes, width = 12, height = 8, dpi = 300)
 
 # También podemos crear un gráfico de líneas que muestre el porcentaje de cancelación a lo largo del tiempo
 plot_porcentaje_cancelacion <- ggplot(reservas_por_tiempo, 
-                                      aes(x = arrival_yearmonth, y = Porcentaje_Canceladas, group = 1)) +
+                                      aes(x = Periodo, y = Tasa_Cancelacion, group = 1)) +
   geom_line(color = "#e74c3c", size = 1.2) +
   geom_point(color = "#e74c3c", size = 2) +
-  geom_text(aes(label = paste0(Porcentaje_Canceladas, "%")), 
+  geom_text(aes(label = paste0(Tasa_Cancelacion, "%")), 
             vjust = -0.8, size = 3) +
   labs(title = "Tendencia del porcentaje de cancelaciones",
        subtitle = "Porcentaje de reservas canceladas por mes",
@@ -906,15 +947,9 @@ plot_porcentaje_cancelacion <- ggplot(reservas_por_tiempo,
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
-print(plot_porcentaje_cancelacion)
-
-# Guardar segunda gráfica
-ggsave(file.path(graphics_analysis_dir, "tendencia_porcentaje_cancelacion.jpg"), 
+# Guardar gráfica adicional
+ggsave(file.path(graficas_dir, "complementarios", "2b_tendencia_porcentaje_cancelacion.jpg"), 
        plot_porcentaje_cancelacion, width = 12, height = 8, dpi = 300)
-
-
-
-
 
 # Análisis por año con porcentajes
 reservas_por_anio <- hotel_data_limpio %>%
@@ -928,9 +963,6 @@ reservas_por_anio <- hotel_data_limpio %>%
     Porcentaje_Completadas = round(Reservas_Completadas / Total_Reservas * 100, 1),
     Porcentaje_Canceladas = round(Reservas_Canceladas / Total_Reservas * 100, 1)
   )
-
-cat("\nReservas por año con porcentajes:\n")
-print(reservas_por_anio)
 
 # Preparar datos para el gráfico horizontal
 datos_anio_apilado <- reservas_por_anio %>%
@@ -969,13 +1001,9 @@ plot_anios_horizontal <- ggplot(datos_anio_apilado,
   theme_minimal() +
   theme(legend.position = "bottom")
 
-print(plot_anios_horizontal)
-
-# Guardar gráfica horizontal
-ggsave(file.path(graphics_analysis_dir, "reservas_por_anio_horizontal.jpg"), 
+# Guardar gráfica adicional
+ggsave(file.path(graficas_dir, "complementarios", "2c_reservas_por_anio_horizontal.jpg"), 
        plot_anios_horizontal, width = 8, height = 6, dpi = 300)
-
-
 
 
 
@@ -986,45 +1014,70 @@ cat(yellow("\n--- ANÁLISIS DE TEMPORADAS ---\n"))
 
 # Agregación por mes
 reservas_por_mes <- hotel_data_limpio %>%
-  group_by(arrival_date_month) %>%
+  group_by(arrival_date_month, hotel) %>%
   summarise(
     Total_Reservas = n(),
     Reservas_Completadas = sum(is_canceled == 0),
-    Tasa_Cancelacion = round(sum(is_canceled) / n() * 100, 2)
+    Tasa_Cancelacion = round(sum(is_canceled) / n() * 100, 2),
+    .groups = 'drop'
   ) %>%
   arrange(match(arrival_date_month, c("January", "February", "March", "April", "May", "June", 
                                       "July", "August", "September", "October", "November", "December")))
 
-cat("\nReservas por mes:\n")
-print(reservas_por_mes)
-
 # Determinar temporadas basadas en cantidad de reservas
-media_reservas <- mean(reservas_por_mes$Total_Reservas)
-sd_reservas <- sd(reservas_por_mes$Total_Reservas)
+total_por_mes <- reservas_por_mes %>%
+  group_by(arrival_date_month) %>%
+  summarise(Total = sum(Total_Reservas))
 
-reservas_por_mes$Temporada <- case_when(
-  reservas_por_mes$Total_Reservas >= (media_reservas + 0.5 * sd_reservas) ~ "Alta",
-  reservas_por_mes$Total_Reservas <= (media_reservas - 0.5 * sd_reservas) ~ "Baja",
+media_reservas <- mean(total_por_mes$Total)
+sd_reservas <- sd(total_por_mes$Total)
+
+total_por_mes$Temporada <- case_when(
+  total_por_mes$Total >= (media_reservas + 0.5 * sd_reservas) ~ "Alta",
+  total_por_mes$Total <= (media_reservas - 0.5 * sd_reservas) ~ "Baja",
   TRUE ~ "Media"
 )
 
-cat("\nClasificación de temporadas por mes:\n")
-print(reservas_por_mes[, c("arrival_date_month", "Total_Reservas", "Temporada")])
+# Unir datos de temporada con el desglose por hotel
+reservas_por_mes <- reservas_por_mes %>%
+  left_join(total_por_mes[, c("arrival_date_month", "Temporada")], by = "arrival_date_month")
 
-# Visualizar reservas por mes
-plot_meses <- ggplot(reservas_por_mes, aes(x = arrival_date_month, y = Total_Reservas, fill = Temporada)) +
+# Crear gráfico de temporadas (como en la imagen 1)
+plot_temporadas <- ggplot(reservas_por_mes, 
+                          aes(x = arrival_date_month, y = Total_Reservas, fill = Temporada)) +
   geom_bar(stat = "identity") +
-  geom_text(aes(label = Total_Reservas), vjust = -0.5, color = "black") +
+  geom_text(aes(label = Total_Reservas), 
+            position = position_stack(vjust = 0.95), 
+            color = "white", size = 3) +
+  facet_wrap(~ hotel) +
+  labs(title = "Temporadas de Reserva por Mes y Tipo de Hotel",
+       subtitle = "Clasificación independiente para cada tipo de hotel",
+       x = "Mes",
+       y = "Número de Reservas",
+       fill = "Temporada") +
+  scale_fill_manual(values = c("Alta" = "#e74c3c", "Media" = "#f39c12", "Baja" = "#3498db")) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+        plot.subtitle = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "bottom")
+
+# Guardar gráfica principal para respuestas (gráfico de imagen 1)
+ggsave(file.path(graficas_dir, "respuestas", "3_temporadas_reserva.jpg"), 
+       plot_temporadas, width = 12, height = 8, dpi = 300)
+
+# Visualizar reservas por mes sin facet
+plot_meses <- ggplot(total_por_mes, aes(x = arrival_date_month, y = Total, fill = Temporada)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = Total), vjust = -0.5, color = "black") +
   labs(title = "Reservas por mes y temporada",
        x = "Mes",
        y = "Cantidad de reservas") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-print(plot_meses)
-
-# Guardar gráfica
-ggsave(file.path(graphics_analysis_dir, "reservas_por_mes.jpg"), 
+# Guardar gráfica adicional
+ggsave(file.path(graficas_dir, "analisis", "3a_reservas_por_mes.jpg"), 
        plot_meses, width = 10, height = 6, dpi = 300)
 
 
@@ -1045,53 +1098,53 @@ if (!is.factor(hotel_data_limpio$arrival_date_month)) {
 
 # Recalcular reservas por mes si es necesario
 if (!exists("reservas_por_mes") || !"Temporada" %in% colnames(reservas_por_mes)) {
+  # Agregación por mes
   reservas_por_mes <- hotel_data_limpio %>%
-    group_by(arrival_date_month) %>%
+    group_by(arrival_date_month, hotel) %>%
     summarise(
       Total_Reservas = n(),
       Reservas_Completadas = sum(is_canceled == 0),
-      Tasa_Cancelacion = round(sum(is_canceled) / n() * 100, 2)
+      Tasa_Cancelacion = round(sum(is_canceled) / n() * 100, 2),
+      .groups = 'drop'
     ) %>%
     arrange(match(arrival_date_month, levels(hotel_data_limpio$arrival_date_month)))
   
-  # Añadir número de mes y temporada
-  reservas_por_mes$mes_num <- match(reservas_por_mes$arrival_date_month, month.name)
+  total_por_mes <- reservas_por_mes %>%
+    group_by(arrival_date_month) %>%
+    summarise(Total = sum(Total_Reservas))
   
-  # Clasificar en temporadas usando criterio estadístico
-  media_reservas <- mean(reservas_por_mes$Total_Reservas)
-  sd_reservas <- sd(reservas_por_mes$Total_Reservas)
-  reservas_por_mes$Temporada <- case_when(
-    reservas_por_mes$Total_Reservas >= (media_reservas + 0.5 * sd_reservas) ~ "Alta",
-    reservas_por_mes$Total_Reservas <= (media_reservas - 0.5 * sd_reservas) ~ "Baja",
+  # Añadir número de mes y temporada
+  media_reservas <- mean(total_por_mes$Total)
+  sd_reservas <- sd(total_por_mes$Total)
+  total_por_mes$Temporada <- case_when(
+    total_por_mes$Total >= (media_reservas + 0.5 * sd_reservas) ~ "Alta",
+    total_por_mes$Total <= (media_reservas - 0.5 * sd_reservas) ~ "Baja",
     TRUE ~ "Media"
   )
+  
+  reservas_por_mes <- reservas_por_mes %>%
+    left_join(total_por_mes[, c("arrival_date_month", "Temporada")], by = "arrival_date_month")
 }
-
-# Mostrar todos los meses ordenados por volumen ascendente
-cat("\nReservas por mes (ordenados de menor a mayor):\n")
-print(reservas_por_mes %>% arrange(Total_Reservas))
 
 # Identificar específicamente los meses de baja demanda
 meses_baja_demanda <- reservas_por_mes %>%
   filter(Temporada == "Baja") %>%
-  arrange(Total_Reservas)
+  select(arrival_date_month, hotel, Total_Reservas) %>%
+  arrange(hotel, Total_Reservas)
 
-cat("\nMeses con menor demanda de reservas:\n")
-print(meses_baja_demanda)
-
-# Visualización de meses de baja demanda
+# Visualizar meses con menor demanda por hotel (como en imagen 2)
 plot_baja_demanda_meses <- ggplot(meses_baja_demanda, 
                                   aes(x = reorder(arrival_date_month, Total_Reservas), 
                                       y = Total_Reservas, 
-                                      fill = Total_Reservas)) +
+                                      fill = hotel)) +
   geom_bar(stat = "identity") +
-  geom_text(aes(label = Total_Reservas), vjust = -0.5, size = 4) +
-  labs(title = "Meses con menor demanda de reservas",
-       subtitle = "Temporada baja hotelera",
-       x = "Mes",
-       y = "Cantidad de reservas") +
+  geom_text(aes(label = Total_Reservas), vjust = 0.5, hjust = -0.2, size = 4) +
+  labs(title = "Meses con Menor Demanda por Tipo de Hotel",
+       subtitle = "Temporada baja para cada tipo de hotel",
+       y = "Número de Reservas",
+       x = "Mes") +
   coord_flip() +
-  scale_fill_gradient(low = "#e74c3c", high = "#f39c12") +
+  facet_wrap(~ hotel) +
   theme_minimal() +
   theme(
     plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
@@ -1100,54 +1153,46 @@ plot_baja_demanda_meses <- ggplot(meses_baja_demanda,
     legend.position = "none"
   )
 
-print(plot_baja_demanda_meses)
-ggsave(file.path(graphics_analysis_dir, "meses_baja_demanda.jpg"), 
-       plot_baja_demanda_meses, width = 8, height = 6, dpi = 300)
+# Guardar gráfica principal para respuestas (gráfico de imagen 2)
+ggsave(file.path(graficas_dir, "respuestas", "4_periodos_baja_demanda.jpg"), 
+       plot_baja_demanda_meses, width = 10, height = 6, dpi = 300)
 
 # Análisis detallado por combinación de mes y día
 reservas_por_dia_mes <- hotel_data_limpio %>%
-  group_by(arrival_date_month, arrival_date_day_of_month) %>%
+  group_by(arrival_date_month, arrival_date_day_of_month, hotel) %>%
   summarise(Total_Reservas = n(), .groups = 'drop') %>%
-  arrange(Total_Reservas)
+  arrange(hotel, Total_Reservas)
 
-# Calcular estadísticas para contextualizar
-promedio_diario_global <- round(mean(reservas_por_dia_mes$Total_Reservas))
-min_reservas_dia <- min(reservas_por_dia_mes$Total_Reservas)
-porcentaje_reduccion <- round((1 - min_reservas_dia/promedio_diario_global) * 100, 2)
+# Obtener los días con menor demanda para cada hotel
+dias_menor_demanda_city <- reservas_por_dia_mes %>%
+  filter(hotel == "City Hotel") %>%
+  arrange(Total_Reservas) %>%
+  head(10)
 
-cat("\nEstadísticas de demanda diaria:\n")
-cat("- Promedio global de reservas por día:", promedio_diario_global, "\n")
-cat("- Mínimo de reservas en un día:", min_reservas_dia, "\n")
-cat("- Reducción porcentual:", porcentaje_reduccion, "% menos que el promedio\n")
+dias_menor_demanda_resort <- reservas_por_dia_mes %>%
+  filter(hotel == "Resort Hotel") %>%
+  arrange(Total_Reservas) %>%
+  head(10)
 
-cat("\nCombinaciones de mes y día con menor demanda (10 primeros):\n")
-dias_menor_demanda <- head(reservas_por_dia_mes, 10)
-print(dias_menor_demanda)
+dias_menor_demanda <- bind_rows(dias_menor_demanda_city, dias_menor_demanda_resort)
 
-# Crear etiquetas más descriptivas para la visualización
+# Crear etiquetas más descriptivas
 dias_menor_demanda$Fecha <- paste(dias_menor_demanda$arrival_date_month, 
                                   dias_menor_demanda$arrival_date_day_of_month)
 
-# Visualización mejorada de los 10 días con menor demanda
-plot_menor_demanda <- ggplot(dias_menor_demanda, 
-                             aes(x = reorder(Fecha, Total_Reservas), 
-                                 y = Total_Reservas, 
-                                 fill = Total_Reservas)) +
+# Crear gráfico como en imagen 3
+plot_dias_menor_demanda <- ggplot(dias_menor_demanda, 
+                                  aes(x = reorder(Fecha, Total_Reservas), 
+                                      y = Total_Reservas, 
+                                      fill = hotel)) +
   geom_bar(stat = "identity") +
-  geom_text(aes(label = Total_Reservas), hjust = -0.5, size = 4) +
-  # Añadir línea de referencia para el promedio global
-  geom_hline(yintercept = promedio_diario_global, linetype = "dashed", 
-             color = "blue", size = 1) +
-  geom_text(aes(x = 5, y = promedio_diario_global + 5, 
-                label = paste("Promedio diario:", promedio_diario_global)), 
-            color = "blue", size = 3.5) +
-  labs(title = "10 días con menor demanda de reservas",
-       subtitle = paste("El día de menor demanda tiene", 
-                        porcentaje_reduccion, "% menos reservas que el promedio diario"),
+  geom_text(aes(label = Total_Reservas), hjust = -0.2, size = 3.5) +
+  labs(title = "Días con Menor Demanda de Reservas por Tipo de Hotel",
+       subtitle = "Análisis separado para cada tipo de hotel",
        x = "Fecha (Mes-Día)",
-       y = "Cantidad de reservas") +
+       y = "Número de Reservas") +
   coord_flip() +
-  scale_fill_gradient(low = "#e74c3c", high = "#f39c12") +
+  facet_wrap(~ hotel, scales = "free_y") +
   theme_minimal() +
   theme(
     plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
@@ -1156,20 +1201,9 @@ plot_menor_demanda <- ggplot(dias_menor_demanda,
     legend.position = "none"
   )
 
-print(plot_menor_demanda)
-
-ggsave(file.path(graphics_analysis_dir, "dias_menor_demanda.jpg"), 
-       plot_menor_demanda, width = 9, height = 7, dpi = 300)
-
-# Análisis específico del día con menor demanda absoluta
-dia_menor_demanda <- reservas_por_dia_mes[1,]
-mes_de_dia_menor <- as.character(dia_menor_demanda$arrival_date_month)
-dia_del_mes_menor <- dia_menor_demanda$arrival_date_day_of_month
-
-cat("\nDía con MENOR demanda absoluta:", mes_de_dia_menor, dia_del_mes_menor, 
-    "con apenas", dia_menor_demanda$Total_Reservas, "reservas\n")
-
-
+# Guardar gráfica adicional (para complementarios, gráfica de imagen 3)
+ggsave(file.path(graficas_dir, "complementarios", "4a_dias_menor_demanda.jpg"), 
+       plot_dias_menor_demanda, width = 12, height = 8, dpi = 300)
 
 
 #------------------------------------------
@@ -1178,92 +1212,110 @@ cat("\nDía con MENOR demanda absoluta:", mes_de_dia_menor, dia_del_mes_menor,
 cat(yellow("\n--- ANÁLISIS DE PERÍODOS DE ALTA DEMANDA ---\n"))
 
 # Asegurarse de que arrival_date_month está como factor con el orden correcto
-hotel_data_limpio$arrival_date_month <- factor(
-  hotel_data_limpio$arrival_date_month,
-  levels = c("January", "February", "March", "April", "May", "June", 
-             "July", "August", "September", "October", "November", "December")
-)
+if (!is.factor(hotel_data_limpio$arrival_date_month)) {
+  hotel_data_limpio$arrival_date_month <- factor(
+    hotel_data_limpio$arrival_date_month,
+    levels = c("January", "February", "March", "April", "May", "June", 
+               "July", "August", "September", "October", "November", "December")
+  )
+}
 
-# Recalcular reservas por mes para asegurar que tenemos los datos correctos
-reservas_por_mes <- hotel_data_limpio %>%
+# Recalcular reservas por mes si es necesario
+if (!exists("reservas_por_mes") || !"Temporada" %in% colnames(reservas_por_mes)) {
+  # Agregación por mes
+  reservas_por_mes <- hotel_data_limpio %>%
+    group_by(arrival_date_month, hotel) %>%
+    summarise(
+      Total_Reservas = n(),
+      Reservas_Completadas = sum(is_canceled == 0),
+      Tasa_Cancelacion = round(sum(is_canceled) / n() * 100, 2),
+      .groups = 'drop'
+    ) %>%
+    arrange(match(arrival_date_month, levels(hotel_data_limpio$arrival_date_month)))
+  
+  total_por_mes <- reservas_por_mes %>%
+    group_by(arrival_date_month) %>%
+    summarise(Total = sum(Total_Reservas))
+  
+  # Añadir número de mes y temporada
+  media_reservas <- mean(total_por_mes$Total)
+  sd_reservas <- sd(total_por_mes$Total)
+  total_por_mes$Temporada <- case_when(
+    total_por_mes$Total >= (media_reservas + 0.5 * sd_reservas) ~ "Alta",
+    total_por_mes$Total <= (media_reservas - 0.5 * sd_reservas) ~ "Baja",
+    TRUE ~ "Media"
+  )
+  
+  # Unir información de temporada
+  reservas_por_mes <- reservas_por_mes %>%
+    left_join(total_por_mes[, c("arrival_date_month", "Temporada")], by = "arrival_date_month")
+}
+
+# Análisis por mes para obtener los meses de mayor demanda
+reservas_por_mes_simple <- hotel_data_limpio %>%
   group_by(arrival_date_month) %>%
-  summarise(
-    Total_Reservas = n(),
-    Reservas_Completadas = sum(is_canceled == 0),
-    Tasa_Cancelacion = round(sum(is_canceled) / n() * 100, 2)
-  ) %>%
-  arrange(match(arrival_date_month, levels(hotel_data_limpio$arrival_date_month)))
+  summarise(Total_Reservas = n(), .groups = 'drop') %>%
+  arrange(desc(Total_Reservas))
 
-# Crear columna numérica para el número de mes (útil para ordenamiento)
-reservas_por_mes$mes_num <- match(reservas_por_mes$arrival_date_month, month.name)
-
-# Identificar meses de alta demanda basados en criterio estadístico
-media_reservas <- mean(reservas_por_mes$Total_Reservas)
-sd_reservas <- sd(reservas_por_mes$Total_Reservas)
-reservas_por_mes$Temporada <- case_when(
-  reservas_por_mes$Total_Reservas >= (media_reservas + 0.5 * sd_reservas) ~ "Alta",
-  reservas_por_mes$Total_Reservas <= (media_reservas - 0.5 * sd_reservas) ~ "Baja",
-  TRUE ~ "Media"
-)
-
-# Mostrar todos los meses ordenados por volumen de reservas (para verificación)
-cat("\nReservas por mes (ordenados por volumen):\n")
-print(reservas_por_mes %>% arrange(desc(Total_Reservas)))
-
-# Identificar específicamente los meses de alta demanda
+# Identificar los meses con mayor demanda
 meses_alta_demanda <- reservas_por_mes %>%
   filter(Temporada == "Alta") %>%
   arrange(desc(Total_Reservas))
 
-cat("\nMeses con mayor demanda de reservas:\n")
-print(meses_alta_demanda)
-
-# Análisis de los días específicos con mayor demanda
-# (Primero asegúrate de que tienes los datos por día)
+# Análisis por día para obtener los días de mayor demanda
 reservas_por_dia_mes <- hotel_data_limpio %>%
-  group_by(arrival_date_month, arrival_date_day_of_month) %>%
+  group_by(arrival_date_month, arrival_date_day_of_month, hotel) %>%
   summarise(Total_Reservas = n(), .groups = 'drop') %>%
-  arrange(desc(Total_Reservas))
+  arrange(hotel, desc(Total_Reservas))
 
-cat("\nCombinaciones de mes y día con mayor demanda (10 primeros):\n")
-dias_mayor_demanda <- head(reservas_por_dia_mes, 10)
-print(dias_mayor_demanda)
+# Obtener los días con mayor demanda para cada hotel
+dias_mayor_demanda_city <- reservas_por_dia_mes %>%
+  filter(hotel == "City Hotel") %>%
+  arrange(desc(Total_Reservas)) %>%
+  head(10)
 
+dias_mayor_demanda_resort <- reservas_por_dia_mes %>%
+  filter(hotel == "Resort Hotel") %>%
+  arrange(desc(Total_Reservas)) %>%
+  head(10)
+
+dias_mayor_demanda <- bind_rows(dias_mayor_demanda_city, dias_mayor_demanda_resort)
+
+# Crear etiquetas para los días
 dias_mayor_demanda$Fecha <- paste(dias_mayor_demanda$arrival_date_month, 
                                   dias_mayor_demanda$arrival_date_day_of_month)
 
-# Visualizar los 10 días con mayor demanda
-plot_mayor_demanda <- ggplot(dias_mayor_demanda, 
-                             aes(x = reorder(Fecha, -Total_Reservas), 
-                                 y = Total_Reservas, 
-                                 fill = Total_Reservas)) +
+# Visualizar los 10 días con mayor demanda por hotel (similar a imagen 3 pero para mayor demanda)
+plot_dias_mayor_demanda <- ggplot(dias_mayor_demanda, 
+                                  aes(x = reorder(Fecha, -Total_Reservas), 
+                                      y = Total_Reservas, 
+                                      fill = hotel)) +
   geom_bar(stat = "identity") +
-  geom_text(aes(label = Total_Reservas), hjust = -0.2) +
-  labs(title = "10 días con mayor demanda de reservas",
-       subtitle = "Ordenados de mayor a menor",
+  geom_text(aes(label = Total_Reservas), hjust = -0.2, size = 3.5) +
+  labs(title = "Días con Mayor Demanda de Reservas por Tipo de Hotel",
+       subtitle = "Análisis separado para cada tipo de hotel",
        x = "Fecha (Mes-Día)",
-       y = "Cantidad de reservas") +
+       y = "Número de Reservas") +
   coord_flip() +
-  scale_fill_gradient(low = "#f39c12", high = "#2ecc71") +
+  facet_wrap(~ hotel, scales = "free_y") +
   theme_minimal() +
-  theme(legend.position = "none")
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    plot.subtitle = element_text(hjust = 0.5, size = 12),
+    axis.text = element_text(size = 10),
+    legend.position = "none"
+  )
 
-print(plot_mayor_demanda)
-
-ggsave(file.path(graphics_analysis_dir, "dias_mayor_demanda.jpg"), 
-       plot_mayor_demanda, width = 8, height = 6, dpi = 300)
-
-#------------------------------------------
-# COMPARATIVA DE MESES DE MAYOR Y MENOR DEMANDA
-#------------------------------------------
-cat(yellow("\n--- COMPARATIVA DE MESES DE MAYOR Y MENOR DEMANDA ---\n"))
+# Guardar gráfica complementaria
+ggsave(file.path(graficas_dir, "complementarios", "5a_dias_mayor_demanda.jpg"), 
+       plot_dias_mayor_demanda, width = 12, height = 8, dpi = 300)
 
 # Identificar explícitamente los meses con mayor y menor número de reservas
-mes_max_demanda <- reservas_por_mes %>% 
+mes_max_demanda <- reservas_por_mes_simple %>% 
   arrange(desc(Total_Reservas)) %>% 
   slice(1)
 
-mes_min_demanda <- reservas_por_mes %>% 
+mes_min_demanda <- reservas_por_mes_simple %>% 
   arrange(Total_Reservas) %>% 
   slice(1)
 
@@ -1271,30 +1323,12 @@ mes_min_demanda <- reservas_por_mes %>%
 diferencia_reservas <- mes_max_demanda$Total_Reservas - mes_min_demanda$Total_Reservas
 porcentaje_diferencia <- round((diferencia_reservas / mes_min_demanda$Total_Reservas) * 100, 2)
 
-# Mostrar resultados detallados
-cat("\nMes con MAYOR demanda:", as.character(mes_max_demanda$arrival_date_month), 
-    "con", mes_max_demanda$Total_Reservas, "reservas\n")
-cat("Mes con MENOR demanda:", as.character(mes_min_demanda$arrival_date_month), 
-    "con", mes_min_demanda$Total_Reservas, "reservas\n")
-cat("Diferencia absoluta:", diferencia_reservas, "reservas\n")
-cat("Diferencia porcentual:", porcentaje_diferencia, "% más en temporada alta\n")
-
-# Calcular promedios diarios para mejor comparación
-dias_por_mes <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-nombres_meses <- month.name
-dias_mes_max <- dias_por_mes[mes_max_demanda$mes_num]
-dias_mes_min <- dias_por_mes[mes_min_demanda$mes_num]
-
-promedio_diario_max <- round(mes_max_demanda$Total_Reservas / dias_mes_max)
-promedio_diario_min <- round(mes_min_demanda$Total_Reservas / dias_mes_min)
-
-cat("El mes de máxima demanda tiene", promedio_diario_max, "reservas diarias en promedio.\n")
-cat("El mes de mínima demanda tiene", promedio_diario_min, "reservas diarias en promedio.\n")
-
 # Crear dataframe para visualización comparativa
-meses_extremos <- rbind(
-  mes_max_demanda %>% mutate(Tipo = "Mayor demanda"),
-  mes_min_demanda %>% mutate(Tipo = "Menor demanda")
+meses_extremos <- data.frame(
+  arrival_date_month = c(as.character(mes_max_demanda$arrival_date_month), 
+                         as.character(mes_min_demanda$arrival_date_month)),
+  Total_Reservas = c(mes_max_demanda$Total_Reservas, mes_min_demanda$Total_Reservas),
+  Tipo = c("Mayor demanda", "Menor demanda")
 )
 
 # Visualizar comparativa con detalle numérico
@@ -1318,12 +1352,16 @@ plot_meses_extremos <- ggplot(meses_extremos,
     axis.title = element_text(size = 14)
   )
 
-print(plot_meses_extremos)
-
-ggsave(file.path(graphics_analysis_dir, "comparativa_meses_extremos.jpg"), 
+# Guardar gráfica para respuestas
+ggsave(file.path(graficas_dir, "respuestas", "5_periodos_alta_demanda.jpg"), 
        plot_meses_extremos, width = 10, height = 7, dpi = 300)
 
-plot_todos_meses <- ggplot(reservas_por_mes, aes(x = arrival_date_month, y = Total_Reservas, fill = Temporada)) +
+# Visualizar distribución anual por temporada
+plot_todos_meses <- ggplot(
+  reservas_por_mes %>% 
+    group_by(arrival_date_month, Temporada) %>% 
+    summarise(Total_Reservas = sum(Total_Reservas), .groups = 'drop'),
+  aes(x = arrival_date_month, y = Total_Reservas, fill = Temporada)) +
   geom_bar(stat = "identity") +
   geom_text(aes(label = Total_Reservas), vjust = -0.5, size = 3.5) +
   labs(title = "Distribución anual de la demanda hotelera",
@@ -1339,11 +1377,9 @@ plot_todos_meses <- ggplot(reservas_por_mes, aes(x = arrival_date_month, y = Tot
     axis.text.x = element_text(angle = 45, hjust = 1, size = 10)
   )
 
-print(plot_todos_meses)
-ggsave(file.path(graphics_analysis_dir, "distribucion_anual_demanda.jpg"), 
+# Guardar gráfica complementaria
+ggsave(file.path(graficas_dir, "complementarios", "5b_distribucion_anual_demanda.jpg"), 
        plot_todos_meses, width = 12, height = 7, dpi = 300)
-
-
 
 
 #------------------------------------------
@@ -1351,10 +1387,24 @@ ggsave(file.path(graphics_analysis_dir, "distribucion_anual_demanda.jpg"),
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE RESERVAS CON NIÑOS Y/O BEBÉS ---\n"))
 
-# Crear variables categóricas para facilitar el análisis
-hotel_data_limpio$tiene_ninos <- hotel_data_limpio$children > 0
-hotel_data_limpio$tiene_bebes <- hotel_data_limpio$babies > 0
-hotel_data_limpio$tiene_menores <- hotel_data_limpio$tiene_ninos | hotel_data_limpio$tiene_bebes
+# Crear variables categóricas para facilitar el análisis si no existen ya
+if(!"tiene_ninos" %in% colnames(hotel_data_limpio)) {
+  hotel_data_limpio$tiene_ninos <- hotel_data_limpio$children > 0
+}
+if(!"tiene_bebes" %in% colnames(hotel_data_limpio)) {
+  hotel_data_limpio$tiene_bebes <- hotel_data_limpio$babies > 0
+}
+if(!"tiene_menores" %in% colnames(hotel_data_limpio)) {
+  hotel_data_limpio$tiene_menores <- hotel_data_limpio$tiene_ninos | hotel_data_limpio$tiene_bebes
+}
+if(!"tipo_familia" %in% colnames(hotel_data_limpio)) {
+  hotel_data_limpio$tipo_familia <- case_when(
+    hotel_data_limpio$tiene_ninos & hotel_data_limpio$tiene_bebes ~ "Con niños y bebés",
+    hotel_data_limpio$tiene_ninos ~ "Solo con niños",
+    hotel_data_limpio$tiene_bebes ~ "Solo con bebés",
+    TRUE ~ "Sin menores"
+  )
+}
 
 # Contar reservas con niños y/o bebés
 reservas_con_ninos <- sum(hotel_data_limpio$tiene_ninos)
@@ -1367,14 +1417,39 @@ porcentaje_ninos <- round(reservas_con_ninos / total_reservas * 100, 2)
 porcentaje_bebes <- round(reservas_con_bebes / total_reservas * 100, 2)
 porcentaje_menores <- round(reservas_con_menores / total_reservas * 100, 2)
 
-# Mostrar resultados
-cat("\nAnálisis de reservas con menores:\n")
-cat("- Reservas con niños:", reservas_con_ninos, "(", porcentaje_ninos, "%)\n")
-cat("- Reservas con bebés:", reservas_con_bebes, "(", porcentaje_bebes, "%)\n")
-cat("- Reservas con niños y/o bebés:", reservas_con_menores, "(", porcentaje_menores, "%)\n")
-cat("- Total de reservas:", total_reservas, "\n")
+# Preparar datos para gráfico por tipo de familia y hotel (como en imagen 4)
+familias_por_hotel <- hotel_data_limpio %>%
+  group_by(hotel, tipo_familia) %>%
+  summarise(Cantidad = n(), .groups = 'drop') %>%
+  group_by(hotel) %>%
+  mutate(Porcentaje = round(Cantidad / sum(Cantidad) * 100, 1))
 
-# Crear dataframe para visualización
+# Crear gráfico de familias (similar a la imagen 4)
+plot_familias <- ggplot(familias_por_hotel, 
+                        aes(x = hotel, y = Porcentaje, fill = tipo_familia)) +
+  geom_bar(stat = "identity", position = "stack") +
+  geom_text(aes(label = paste0(format(Cantidad, big.mark = ","), "\n(", Porcentaje, "%)")), 
+            position = position_stack(vjust = 0.5), 
+            color = "white", size = 3.5) +
+  labs(title = "Composición de Reservas por Tipo de Familia",
+       subtitle = paste("Análisis de", format(total_reservas, big.mark = ","), "reservas en muestra completa"),
+       x = "Tipo de Hotel",
+       y = "Porcentaje",
+       fill = "Tipo de Familia") +
+  scale_fill_manual(values = c("Sin menores" = "#95a5a6", 
+                               "Solo con niños" = "#3498db", 
+                               "Solo con bebés" = "#2ecc71",
+                               "Con niños y bebés" = "#e74c3c")) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position = "bottom")
+
+# Guardar gráfica principal para respuestas (gráfica de imagen 4)
+ggsave(file.path(graficas_dir, "respuestas", "6_reservas_familias.jpg"), 
+       plot_familias, width = 10, height = 7, dpi = 300)
+
+# Crear dataframe para visualización general
 datos_menores <- data.frame(
   Categoria = c("Con niños", "Con bebés", "Con niños y/o bebés", "Sin menores"),
   Cantidad = c(reservas_con_ninos, reservas_con_bebes, reservas_con_menores, 
@@ -1384,7 +1459,7 @@ datos_menores <- data.frame(
 datos_menores$Porcentaje <- round(datos_menores$Cantidad / total_reservas * 100, 2)
 datos_menores$Etiqueta <- paste0(datos_menores$Cantidad, "\n(", datos_menores$Porcentaje, "%)")
 
-# Visualizar distribución
+# Visualizar distribución general
 plot_menores <- ggplot(datos_menores[c(3,4),], aes(x = "", y = Cantidad, fill = Categoria)) +
   geom_bar(stat = "identity", width = 1) +
   geom_text(aes(label = Etiqueta), position = position_stack(vjust = 0.5), color = "white") +
@@ -1396,10 +1471,8 @@ plot_menores <- ggplot(datos_menores[c(3,4),], aes(x = "", y = Cantidad, fill = 
         axis.text = element_blank(),
         panel.grid = element_blank())
 
-print(plot_menores)
-
-# Guardar gráfica
-ggsave(file.path(graphics_analysis_dir, "reservas_con_menores.jpg"), 
+# Guardar gráfica para análisis
+ggsave(file.path(graficas_dir, "analisis", "6a_reservas_con_menores.jpg"), 
        plot_menores, width = 8, height = 6, dpi = 300)
 
 # Analizar por tipo de hotel
@@ -1413,9 +1486,6 @@ reservas_menores_hotel <- hotel_data_limpio %>%
     Porcentaje_Menores = round(sum(tiene_menores) / n() * 100, 2)
   )
 
-cat("\nReservas con menores por tipo de hotel:\n")
-print(reservas_menores_hotel)
-
 # Visualizar proporción por hotel
 plot_menores_hotel <- ggplot(reservas_menores_hotel, 
                              aes(x = hotel, y = Porcentaje_Menores, fill = hotel)) +
@@ -1427,31 +1497,88 @@ plot_menores_hotel <- ggplot(reservas_menores_hotel,
   theme_minimal() +
   theme(legend.position = "none")
 
-print(plot_menores_hotel)
-
-# Guardar gráfica
-ggsave(file.path(graphics_analysis_dir, "menores_por_hotel.jpg"), 
+# Guardar gráfica complementaria
+ggsave(file.path(graficas_dir, "complementarios", "6b_menores_por_hotel.jpg"), 
        plot_menores_hotel, width = 8, height = 6, dpi = 300)
+
 
 #------------------------------------------
 # EDA 07. ¿ES IMPORTANTE CONTAR CON ESPACIOS DE ESTACIONAMIENTO?
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE ESPACIOS DE ESTACIONAMIENTO ---\n"))
 
-# Crear variable categórica
-hotel_data_limpio$requiere_estacionamiento <- hotel_data_limpio$required_car_parking_spaces > 0
+# Crear variable categórica si no existe
+if(!"requiere_estacionamiento" %in% colnames(hotel_data_limpio)) {
+  hotel_data_limpio$requiere_estacionamiento <- hotel_data_limpio$required_car_parking_spaces > 0
+}
 
 # Contar reservas que requieren estacionamiento
 reservas_con_estacionamiento <- sum(hotel_data_limpio$requiere_estacionamiento)
 porcentaje_estacionamiento <- round(reservas_con_estacionamiento / total_reservas * 100, 2)
 
-cat("\nAnálisis de necesidad de estacionamiento:\n")
-cat("- Reservas que requieren estacionamiento:", reservas_con_estacionamiento, 
-    "(", porcentaje_estacionamiento, "%)\n")
-cat("- Reservas sin requerimiento de estacionamiento:", total_reservas - reservas_con_estacionamiento, 
-    "(", 100 - porcentaje_estacionamiento, "%)\n")
+# Análisis por tipo de hotel (como en la imagen 6)
+estacionamiento_por_hotel <- hotel_data_limpio %>%
+  group_by(hotel) %>%
+  summarise(
+    Total_Reservas = n(),
+    Requiere_Estacionamiento = sum(requiere_estacionamiento),
+    Porcentaje_Estacionamiento = round(sum(requiere_estacionamiento) / n() * 100, 2)
+  )
 
-# Crear dataframe para visualización
+# Visualizar proporción por hotel (como en imagen 6)
+plot_estacionamiento_hotel <- ggplot(estacionamiento_por_hotel, 
+                                     aes(x = hotel, y = Porcentaje_Estacionamiento, fill = hotel)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(Porcentaje_Estacionamiento, "%")), vjust = -0.5, size = 4) +
+  labs(title = "Porcentaje de Reservas que Requieren Estacionamiento",
+       subtitle = paste("Solo el", porcentaje_estacionamiento, "% del total de reservas requieren estacionamiento"),
+       x = "Tipo de Hotel",
+       y = "Porcentaje") +
+  scale_fill_manual(values = colores_hotel) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    plot.subtitle = element_text(hjust = 0.5),
+    legend.position = "none"
+  )
+
+# Guardar gráfica principal para respuestas (como en imagen 6)
+ggsave(file.path(graficas_dir, "respuestas", "7_necesidad_estacionamiento.jpg"), 
+       plot_estacionamiento_hotel, width = 8, height = 6, dpi = 300)
+
+# Análisis adicional: relación entre estacionamiento y tipo de cliente (como en imagen 5)
+estacionamiento_por_cliente <- hotel_data_limpio %>%
+  group_by(customer_type) %>%
+  summarise(
+    Total_Reservas = n(),
+    Requiere_Estacionamiento = sum(requiere_estacionamiento),
+    Porcentaje_Estacionamiento = round(sum(requiere_estacionamiento) / n() * 100, 2)
+  ) %>%
+  arrange(desc(Porcentaje_Estacionamiento))
+
+# Visualizar por tipo de cliente (como en imagen 5)
+plot_estacionamiento_cliente <- ggplot(estacionamiento_por_cliente, 
+                                       aes(x = reorder(customer_type, Porcentaje_Estacionamiento), 
+                                           y = Porcentaje_Estacionamiento, 
+                                           fill = customer_type)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(Porcentaje_Estacionamiento, "%")), vjust = -0.5) +
+  labs(title = "Necesidad de Estacionamiento por Tipo de Cliente",
+       subtitle = "Análisis de la demanda de estacionamiento según perfil del cliente",
+       x = "Tipo de cliente",
+       y = "Porcentaje") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    plot.subtitle = element_text(hjust = 0.5),
+    legend.position = "none"
+  )
+
+# Guardar gráfica complementaria
+ggsave(file.path(graficas_dir, "complementarios", "7a_estacionamiento_por_cliente.jpg"), 
+       plot_estacionamiento_cliente, width = 10, height = 6, dpi = 300)
+
+# Crear dataframe para visualización general
 datos_estacionamiento <- data.frame(
   Categoria = c("Requiere estacionamiento", "No requiere estacionamiento"),
   Cantidad = c(reservas_con_estacionamiento, total_reservas - reservas_con_estacionamiento)
@@ -1461,7 +1588,7 @@ datos_estacionamiento$Porcentaje <- round(datos_estacionamiento$Cantidad / total
 datos_estacionamiento$Etiqueta <- paste0(datos_estacionamiento$Cantidad, 
                                          "\n(", datos_estacionamiento$Porcentaje, "%)")
 
-# Visualizar distribución
+# Visualizar distribución general
 plot_estacionamiento <- ggplot(datos_estacionamiento, aes(x = "", y = Cantidad, fill = Categoria)) +
   geom_bar(stat = "identity", width = 1) +
   geom_text(aes(label = Etiqueta), position = position_stack(vjust = 0.5), color = "white") +
@@ -1473,72 +1600,9 @@ plot_estacionamiento <- ggplot(datos_estacionamiento, aes(x = "", y = Cantidad, 
         axis.text = element_blank(),
         panel.grid = element_blank())
 
-print(plot_estacionamiento)
-
-# Guardar gráfica
-ggsave(file.path(graphics_analysis_dir, "necesidad_estacionamiento.jpg"), 
+# Guardar gráfica para análisis
+ggsave(file.path(graficas_dir, "analisis", "7b_proporcion_estacionamiento.jpg"), 
        plot_estacionamiento, width = 8, height = 6, dpi = 300)
-
-# Análisis por tipo de hotel
-estacionamiento_por_hotel <- hotel_data_limpio %>%
-  group_by(hotel) %>%
-  summarise(
-    Total_Reservas = n(),
-    Requiere_Estacionamiento = sum(requiere_estacionamiento),
-    Porcentaje_Estacionamiento = round(sum(requiere_estacionamiento) / n() * 100, 2)
-  )
-
-cat("\nNecesidad de estacionamiento por tipo de hotel:\n")
-print(estacionamiento_por_hotel)
-
-# Visualizar proporción por hotel
-plot_estacionamiento_hotel <- ggplot(estacionamiento_por_hotel, 
-                                     aes(x = hotel, y = Porcentaje_Estacionamiento, fill = hotel)) +
-  geom_bar(stat = "identity") +
-  geom_text(aes(label = paste0(Porcentaje_Estacionamiento, "%")), vjust = -0.5) +
-  labs(title = "Porcentaje de reservas que requieren estacionamiento por tipo de hotel",
-       x = "Tipo de hotel",
-       y = "Porcentaje") +
-  theme_minimal() +
-  theme(legend.position = "none")
-
-print(plot_estacionamiento_hotel)
-
-# Guardar gráfica
-ggsave(file.path(graphics_analysis_dir, "estacionamiento_por_hotel.jpg"), 
-       plot_estacionamiento_hotel, width = 8, height = 6, dpi = 300)
-
-# Análisis adicional: relación entre estacionamiento y tipo de cliente
-estacionamiento_por_cliente <- hotel_data_limpio %>%
-  group_by(customer_type) %>%
-  summarise(
-    Total_Reservas = n(),
-    Requiere_Estacionamiento = sum(requiere_estacionamiento),
-    Porcentaje_Estacionamiento = round(sum(requiere_estacionamiento) / n() * 100, 2)
-  ) %>%
-  arrange(desc(Porcentaje_Estacionamiento))
-
-cat("\nNecesidad de estacionamiento por tipo de cliente:\n")
-print(estacionamiento_por_cliente)
-
-# Visualizar por tipo de cliente
-plot_estacionamiento_cliente <- ggplot(estacionamiento_por_cliente, 
-                                       aes(x = reorder(customer_type, Porcentaje_Estacionamiento), 
-                                           y = Porcentaje_Estacionamiento, 
-                                           fill = customer_type)) +
-  geom_bar(stat = "identity") +
-  geom_text(aes(label = paste0(Porcentaje_Estacionamiento, "%")), vjust = -0.5) +
-  labs(title = "Porcentaje de reservas que requieren estacionamiento por tipo de cliente",
-       x = "Tipo de cliente",
-       y = "Porcentaje") +
-  theme_minimal() +
-  theme(legend.position = "none")
-
-print(plot_estacionamiento_cliente)
-
-# Guardar gráfica
-ggsave(file.path(graphics_analysis_dir, "estacionamiento_por_cliente.jpg"), 
-       plot_estacionamiento_cliente, width = 10, height = 6, dpi = 300)
 
 
 
@@ -1547,7 +1611,45 @@ ggsave(file.path(graphics_analysis_dir, "estacionamiento_por_cliente.jpg"),
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS DE CANCELACIONES POR MES ---\n"))
 
-# Analizar cancelaciones por mes
+# Analizar cancelaciones por mes y hotel (como en imagen 7)
+cancelaciones_por_hotel_mes <- hotel_data_limpio %>%
+  group_by(hotel, arrival_date_month) %>%
+  summarise(
+    Total_Reservas = n(),
+    Canceladas = sum(is_canceled),
+    Tasa_Cancelacion = round(sum(is_canceled) / n() * 100, 2),
+    .groups = 'drop'
+  ) %>%
+  arrange(hotel, match(arrival_date_month, c("January", "February", "March", "April", "May", "June", 
+                                             "July", "August", "September", "October", "November", "December")))
+
+# Visualizar tasa de cancelación por hotel y mes (como en imagen 7)
+plot_cancelacion_hotel <- ggplot(cancelaciones_por_hotel_mes, 
+                                 aes(x = arrival_date_month, y = Tasa_Cancelacion, 
+                                     fill = Tasa_Cancelacion)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(Tasa_Cancelacion, "%")), 
+            vjust = -0.2, size = 2.8) +
+  labs(title = "Tasa de Cancelación por Mes - Comparativa por Tipo de Hotel",
+       subtitle = "Análisis separado para cada tipo de hotel",
+       x = "Mes",
+       y = "Porcentaje de Cancelación",
+       fill = "Tasa de Cancelación") +
+  facet_wrap(~ hotel) +
+  scale_fill_gradient(low = "lightblue", high = "darkred") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    plot.subtitle = element_text(hjust = 0.5),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "none"
+  )
+
+# Guardar gráfica principal para respuestas (como en imagen 7)
+ggsave(file.path(graficas_dir, "respuestas", "8_cancelaciones_por_mes.jpg"), 
+       plot_cancelacion_hotel, width = 12, height = 6, dpi = 300)
+
+# Analizar cancelaciones por mes (general)
 cancelaciones_por_mes <- hotel_data_limpio %>%
   group_by(arrival_date_month) %>%
   summarise(
@@ -1557,9 +1659,6 @@ cancelaciones_por_mes <- hotel_data_limpio %>%
   ) %>%
   arrange(match(arrival_date_month, c("January", "February", "March", "April", "May", "June", 
                                       "July", "August", "September", "October", "November", "December")))
-
-cat("\nCancelaciones por mes:\n")
-print(cancelaciones_por_mes)
 
 # Visualizar tasa de cancelación por mes
 plot_cancelaciones <- ggplot(cancelaciones_por_mes, 
@@ -1574,10 +1673,8 @@ plot_cancelaciones <- ggplot(cancelaciones_por_mes,
         legend.position = "none") +
   scale_fill_gradient(low = "lightblue", high = "darkred")
 
-print(plot_cancelaciones)
-
-# Guardar gráfica
-ggsave(file.path(graphics_analysis_dir, "tasa_cancelacion_mes.jpg"), 
+# Guardar gráfica para análisis
+ggsave(file.path(graficas_dir, "analisis", "8a_tasa_cancelacion_mes.jpg"), 
        plot_cancelaciones, width = 10, height = 6, dpi = 300)
 
 # Visualizar cancelaciones absolutas por mes
@@ -1593,62 +1690,73 @@ plot_cancelaciones_abs <- ggplot(cancelaciones_por_mes,
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-print(plot_cancelaciones_abs)
-
-# Guardar gráfica
-ggsave(file.path(graphics_analysis_dir, "cancelaciones_absolutas_mes.jpg"), 
+# Guardar gráfica complementaria
+ggsave(file.path(graficas_dir, "complementarios", "8b_cancelaciones_absolutas_mes.jpg"), 
        plot_cancelaciones_abs, width = 10, height = 6, dpi = 300)
 
-# Análisis por tipo de hotel
-cancelaciones_por_hotel_mes <- hotel_data_limpio %>%
-  group_by(hotel, arrival_date_month) %>%
-  summarise(
-    Total_Reservas = n(),
-    Canceladas = sum(is_canceled),
-    Tasa_Cancelacion = round(sum(is_canceled) / n() * 100, 2)
-  ) %>%
-  arrange(hotel, match(arrival_date_month, c("January", "February", "March", "April", "May", "June", 
-                                             "July", "August", "September", "October", "November", "December")))
 
-cat("\nTasas de cancelación por hotel y mes (primeras filas):\n")
-print(head(cancelaciones_por_hotel_mes, 10))
 
-# Visualizar tasa de cancelación por hotel y mes
-plot_cancelacion_hotel <- ggplot(cancelaciones_por_hotel_mes, 
-                                 aes(x = arrival_date_month, y = Tasa_Cancelacion, 
-                                     fill = hotel, group = hotel)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  geom_text(aes(label = paste0(Tasa_Cancelacion, "%")), 
-            position = position_dodge(width = 0.9), vjust = -0.5, size = 2.5) +
-  labs(title = "Tasa de cancelación por hotel y mes",
-       x = "Mes",
-       y = "Porcentaje de cancelación",
-       fill = "Tipo de hotel") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-print(plot_cancelacion_hotel)
-
-# Guardar gráfica
-ggsave(file.path(graphics_analysis_dir, "cancelacion_hotel_mes.jpg"), 
-       plot_cancelacion_hotel, width = 12, height = 6, dpi = 300)
 
 #------------------------------------------
 # EDA 09: ANÁLISIS ADICIONAL - RELACIÓN ENTRE VARIABLES CLAVE
 #------------------------------------------
 cat(yellow("\n--- ANÁLISIS ADICIONAL: RELACIONES ENTRE VARIABLES ---\n"))
 
-# Análisis de relación entre lead_time y cancelación
+# Crear variable total_nights si no existe
+if(!"total_nights" %in% colnames(hotel_data_limpio)) {
+  hotel_data_limpio$total_nights <- hotel_data_limpio$stays_in_weekend_nights + hotel_data_limpio$stays_in_week_nights
+}
+
+# Análisis de relación entre lead_time y cancelación (como en imagen 8)
+# Primero crear categorías de lead_time
+if(!"lead_time_categoria" %in% colnames(hotel_data_limpio)) {
+  hotel_data_limpio$lead_time_categoria <- cut(hotel_data_limpio$lead_time, 
+                                               breaks = c(-1, 7, 30, 90, 180, Inf),
+                                               labels = c("0-7 días", "8-30 días", "31-90 días", "91-180 días", "Más de 180 días"))
+}
+
+relacion_lead_cancelacion <- hotel_data_limpio %>%
+  group_by(hotel, lead_time_categoria) %>%
+  summarise(
+    Total_Reservas = n(),
+    Canceladas = sum(is_canceled),
+    Tasa_Cancelacion = round(Canceladas / Total_Reservas * 100, 2),
+    .groups = 'drop'
+  )
+
+# Visualizar relación entre lead_time y cancelación por tipo de hotel (como en imagen 8)
+plot_lead_cancelacion_hotel <- ggplot(relacion_lead_cancelacion, 
+                                      aes(x = lead_time_categoria, y = Tasa_Cancelacion, fill = Tasa_Cancelacion)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(Tasa_Cancelacion, "%")), 
+            vjust = -0.3, size = 3.5) +
+  labs(title = "Relación entre Tiempo de Anticipación y Tasa de Cancelación",
+       subtitle = "Análisis separado para cada tipo de hotel",
+       x = "Tiempo de Anticipación",
+       y = "Tasa de Cancelación (%)") +
+  facet_wrap(~ hotel) +
+  scale_fill_gradient(low = "lightblue", high = "darkred") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    plot.subtitle = element_text(hjust = 0.5, size = 12),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
+    legend.position = "none"
+  )
+
+# Guardar gráfica principal para respuestas (imagen 8)
+ggsave(file.path(graficas_dir, "respuestas", "9_relacion_leadtime_cancelacion.jpg"), 
+       plot_lead_cancelacion_hotel, width = 12, height = 7, dpi = 300)
+
+# Análisis general de relación entre lead_time y cancelación
 lead_time_cancelacion <- hotel_data_limpio %>%
   group_by(is_canceled) %>%
   summarise(
     Promedio_Lead_Time = mean(lead_time),
     Mediana_Lead_Time = median(lead_time),
-    Count = n()
+    Count = n(),
+    .groups = 'drop'
   )
-
-cat("\nRelación entre tiempo de anticipación (lead_time) y cancelación:\n")
-print(lead_time_cancelacion)
 
 # Visualizar lead_time por estado de cancelación
 plot_lead_time <- ggplot(hotel_data_limpio, aes(x = factor(is_canceled), y = lead_time, fill = factor(is_canceled))) +
@@ -1660,14 +1768,15 @@ plot_lead_time <- ggplot(hotel_data_limpio, aes(x = factor(is_canceled), y = lea
   theme_minimal() +
   theme(legend.position = "none")
 
-print(plot_lead_time)
-
-# Guardar gráfica
-ggsave(file.path(graphics_analysis_dir, "lead_time_cancelacion.jpg"), 
+# Guardar gráfica para análisis
+ggsave(file.path(graficas_dir, "analisis", "9a_lead_time_cancelacion_boxplot.jpg"), 
        plot_lead_time, width = 8, height = 6, dpi = 300)
 
-# Análisis de duración de estancia
-hotel_data_limpio$total_nights <- hotel_data_limpio$stays_in_weekend_nights + hotel_data_limpio$stays_in_week_nights
+# Análisis de duración de estancia por tipo de hotel
+# Asegurar que existe total_nights
+if(!"total_nights" %in% colnames(hotel_data_limpio)) {
+  hotel_data_limpio$total_nights <- hotel_data_limpio$stays_in_weekend_nights + hotel_data_limpio$stays_in_week_nights
+}
 
 duracion_estancia <- hotel_data_limpio %>%
   group_by(hotel) %>%
@@ -1675,11 +1784,9 @@ duracion_estancia <- hotel_data_limpio %>%
     Promedio_Noches = mean(total_nights),
     Mediana_Noches = median(total_nights),
     Max_Noches = max(total_nights),
-    Min_Noches = min(total_nights)
+    Min_Noches = min(total_nights),
+    .groups = 'drop'
   )
-
-cat("\nDuración promedio de estancia por tipo de hotel:\n")
-print(duracion_estancia)
 
 # Visualizar duración de estancia por tipo de hotel
 plot_duracion <- ggplot(hotel_data_limpio, aes(x = hotel, y = total_nights, fill = hotel)) +
@@ -1691,12 +1798,9 @@ plot_duracion <- ggplot(hotel_data_limpio, aes(x = hotel, y = total_nights, fill
   theme_minimal() +
   theme(legend.position = "none")
 
-print(plot_duracion)
-
-# Guardar gráfica
-ggsave(file.path(graphics_analysis_dir, "duracion_estancia.jpg"), 
+# Guardar gráfica complementaria
+ggsave(file.path(graficas_dir, "complementarios", "9b_duracion_estancia.jpg"), 
        plot_duracion, width = 8, height = 6, dpi = 300)
-
 
 
 #------------------------------------------
@@ -1863,6 +1967,13 @@ plot_demanda_hotel <- ggplot(demanda_hotel,
         legend.position = "bottom")
 
 print(plot_demanda_hotel)
+
+graphics_final_dir <- file.path(graficas_dir, "final")
+if (!dir.exists(graphics_final_dir)) {
+  dir.create(graphics_final_dir, recursive = TRUE)
+  cat("Creado directorio para gráficas finales:", graphics_final_dir, "\n")
+}
+
 ggsave(file.path(graphics_final_dir, "1_demanda_hotel.jpg"), 
        plot_demanda_hotel, width = 10, height = 7, dpi = 300)
 
@@ -2319,5 +2430,3 @@ cat("- 6_comparacion_hoteles.jpg: Tabla comparativa entre tipos de hotel\n")
 cat("- 7_lead_time_cancelacion.jpg: Relación entre tiempo de anticipación y cancelación\n")
 
 cat(green("\n=== ANÁLISIS EXPLORATORIO COMPLETADO EXITOSAMENTE ===\n"))
-sink()
-

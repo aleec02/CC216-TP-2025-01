@@ -1,6 +1,4 @@
-# CC216-TP-2025-1
-
-# Hotel Booking Demand Analysis
+# CC216-TP-2025-1: Hotel Booking Demand Analysis
 
 <img src="imgs/hotel.png" alt="Hotel Image" width="400"/>
 
@@ -55,7 +53,7 @@ Nuestros hallazgos revelan marcadas diferencias entre el comportamiento de los c
 
 | Código      | Nombres y apellidos           | Responsabilidades principales |
 |-------------|-------------------------------|-------------------------------|
-| u202118038  | Conza Hualpa, Alexia Evelyn   | Metodología EDA, recomendaciones estratégicas |
+| u202118038  | Conza Hualpa, Alexia Evelyn   | Metodología EDA, recomendaciones estratégicas, visualizaciones, análisis, preprocesamiento |
 | u202311894  | Villanueva Aramburú, José Javier | Análisis de tendencias temporales, visualizaciones |
 | u20231e122  | Bravo Lévano, Eduardo Fernando | Preprocesamiento de datos, detección de outliers |
 | u202412543  | Caldas Zapata, Ernesto Yago   | Segmentación de clientes, análisis de cancelaciones  |
@@ -777,7 +775,7 @@ El análisis revela una marcada diferencia en la demanda de estacionamiento entr
 
 ### 7. Análisis de Cancelaciones por Mes
 ¿En qué meses se producen más cancelaciones?
-![Tasa de cancelación por mes](data/graficas/analisis/tasa_cancelacion_mes.jpg)
+![Tasa de cancelación por mes](.\output\graficas\respuestas\8_cancelaciones_por_mes.jpg)
 
 ```R
 # Analizar cancelaciones por mes
@@ -969,7 +967,7 @@ CC216-TP-2025-1/
 │           └── 7_lead_time_cancelacion.jpg
 │
 ├── imgs/
-│   └── hotel.png                   # Imagen
+│   └── hotel.png
 ```
 
 ## Próximos Pasos y Futuros Análisis
@@ -1005,4 +1003,4 @@ Este proyecto se distribuye bajo la licencia MIT. Consulte el archivo [LICENSE](
 
 ---
 
-*Universidad Peruana de Ciencias Aplicadas (UPC) | CC216 - Fundamentos de Data Science | 2025-1*
+*Universidad Peruana de Ciencias Aplicadas (UPC) | CC216 - Fundamentos de Data Science | 2025-01*
